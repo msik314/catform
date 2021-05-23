@@ -1,0 +1,10 @@
+bin
+build
+include
+lib
+obj
+old
+res
+shaders
+.test
+tools

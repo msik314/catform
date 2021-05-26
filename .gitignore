@@ -3,6 +3,10 @@ bin/
 obj/
 old/
 
+#Build Intermediates
+.ninja*
+*.ninja
+
 # C
 # Prerequisites
 *.d

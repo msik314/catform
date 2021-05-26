@@ -11,3 +11,6 @@ VECTOR_IMPL(char)
 VECTOR_IMPL(bool)
 VECTOR_IMPL(float)
 VECTOR_IMPL(double)
+
+#include "ecs/ecSystem.h"
+VECTOR_IMPL(ECSystem)

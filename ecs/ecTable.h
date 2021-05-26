@@ -23,17 +23,18 @@ ECTable;
 
 void ecTableCreate(ECTable* table, uint32_t numColumns);
 void ecTableDestroy(ECTable* table);
+void ecTableAddRemove(ECTable* table);
+uint32_t ecTableGetChildren(const ECTable* table, ObjectID entity, ObjectID* outEntities, uint32_t maxOut);
 
-#define ecTableAdd(TYPE) ecTable ## TYPE ## Add
-#define ecTableRemove(TYPE) ecTable ## TYPE ## Remove
-#define ecTableGetComponent(TYPE) ecTable ## TYPE ## GetComponent
-#define ecTableGetChildren(TYPE) ecTable ## TYPE ## GetChildren
+#define ecTableAdd(table, type, objectPtr, parentID, outID)\
+do\
+{\
+    (objectPtr)->self.parent = parentID;\
+    *(outID) = ectColumnAddID(type)((ECTColumn(type)*)&(table)->columns[COMPONENT(type)], (objectPtr), &(table)->pointerMap);\
+}\
+while(0);
 
-#define ECTABLE_OBJ_DECL(TYPE)\
-ObjectID ecTableAdd(TYPE)(ECTable* table, TYPE* original, ObjectID parent);\
-bool ecTableRemove(TYPE)(ECTable* table, ObjectID id);\
-ObjectID ecTableGetComponent(TYPE)(const ECTable* table, ObjectID entity);\
-uint32_t ecTableGetChildren(TYPE)(const ECTable* table, ObjectID entity, ObjectID* outEntities, uint32_t maxOut);
+#define ecTableRemove(table, type, objectID) (ectColumnRemove(type)((ECTColumn(type)*)&(table)->columns[COMPONENT(type)], pointerMapGet(&(table)->pointerMap, objectID)))
 
 #ifdef __cplusplus
 };

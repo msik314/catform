@@ -9,6 +9,7 @@
 #include "ecs/object.h"
 #include "ecs/ectColumn.h"
 #include "ecs/ecTable.h"
+#include "util/atomics.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -25,10 +26,38 @@ typedef struct
 }
 Entity;
 
+static inline bool entityHasComponent(const Entity* entity, uint32_t index)
+{
+    return (entity->componentMask[0] & (1ull << index)) || (entity->componentMask[1] & (1ull << (index - 64)));
+}
+
+static inline void entitySetHasComponent(Entity* entity, uint32_t index)
+{
+    if(index < 64)
+    {
+        fetchOr64(&entity->componentMask[0], 1ull << index);
+    }
+    else
+    {
+        fetchOr64(&entity->componentMask[1], 1ull << (index - 64));
+    }
+}
+
+static inline void entityResetHasComponent(Entity* entity, uint32_t index)
+{
+    if(index < 64)
+    {
+        fetchAnd64(&entity->componentMask[0], ~(1ull << index));
+    }
+    else
+    {
+        fetchAnd64(&entity->componentMask[1], ~(1ull << (index - 64)));
+    }
+}
+
 COLLECTION_DECL(Entity)
 MWQUEUE_DECL(Entity)
 ECTCOLUMN_DECL(Entity)
-ECTABLE_OBJ_DECL(Entity);
 
 #ifdef __cplusplus
 };

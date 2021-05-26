@@ -31,6 +31,7 @@ int32_t main()
     Entity c;
     uint32_t idx;
     uint32_t* testPtr = NULL;
+    ObjectID id;
     
     e.transform = TRANSFORM_IDENTITY;
     e.self.parent = INVALID_OBJECT;
@@ -43,21 +44,19 @@ int32_t main()
     ectColumnCreate(Entity)(column);
     printColumn(column);      
     
-    ecTableAdd(Entity)(&table, &e, INVALID_OBJECT);
+    ecTableAdd(&table, Entity, &e, INVALID_OBJECT, &id);
+    ecTableAdd(&table, Entity, &c, id, &id);
     
-    ecTableAdd(Entity)(&table, &c, e.self.id);
-    ectColumnAddRemove(Entity)(column, &table.pointerMap);
+    ecTableAddRemove(&table);
     printColumn(column);
     
-    idx = pointerMapGet(&table.pointerMap, c.self.id);
-    ecTableRemove(Entity)(&table, idx);
+    ecTableRemove(&table, Entity, c.self.id);
     
-    ectColumnAddRemove(Entity)(column, &table.pointerMap);
+    ecTableAddRemove(&table);
     printColumn(column);
     
-    idx = pointerMapGet(&table.pointerMap, e.self.id);
-    ecTableRemove(Entity)(&table, idx);
-    ectColumnAddRemove(Entity)(column, &table.pointerMap);
+    ecTableRemove(&table, Entity, e.self.id);
+    ecTableAddRemove(&table);
     printColumn(column);
     
     ecTableDestroy(&table);

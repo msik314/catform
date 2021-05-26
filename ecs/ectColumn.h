@@ -15,10 +15,16 @@ extern "C"
 #include <stdbool.h>
 #endif //__cplusplus
 
+
+struct _ECTColumn;
+
+typedef void (*ECTColumnAddRemoveFun)(struct _ECTColumn* self, struct _ECTColumn* entities, PointerMap* pointerMap);
+
 typedef struct _ECTColumn
 {
     Collection components;
     MWQueue addQueue;
+    ECTColumnAddRemoveFun addRemove;
 }
 ECTColumn;
 
@@ -37,6 +43,7 @@ typedef struct\
 {\
     Collection(TYPE) components;\
     MWQueue(TYPE) addQueue;\
+    ECTColumnAddRemoveFun addRemove;\
 }\
 ECTColumn(TYPE);\
 \
@@ -45,7 +52,7 @@ void ectColumnDestroy(TYPE)(ECTColumn(TYPE)* ectColumn);\
 void ectColumnAdd(TYPE)(ECTColumn(TYPE)* ectColumn, TYPE* original);\
 ObjectID ectColumnAddID(TYPE)(ECTColumn(TYPE)* ectColumn, TYPE* original, PointerMap* pointerMap);\
 bool ectColumnRemove(TYPE)(ECTColumn(TYPE)* ectColumn, uint32_t index);\
-void ectColumnAddRemove(TYPE)(ECTColumn(TYPE)* ectColumn, PointerMap* pointerMap);
+void ectColumnAddRemove(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entites, PointerMap* pointerMap);
 
 #ifdef __cplusplus
 };

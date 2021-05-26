@@ -6,6 +6,7 @@
 #include "ecs/ectColumn.h"
 #include "ecs/pointerMap.h"
 #include "ecs/component.h"
+#include "ecs/entity.h"
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -36,3 +37,26 @@ void ecTableDestroy(ECTable* table)
     }
 }
 
+void ecTableAddRemove(ECTable* table)
+{
+    for(uint32_t i = 0; i < table->numColumns; ++i)
+    {
+        table->columns[i].addRemove(&table->columns[i], &table->columns[COMPONENT(Entity)], &table->pointerMap); 
+    }
+}
+
+uint32_t ecTableGetChildren(const ECTable* table, ObjectID entity, ObjectID* outEntities, uint32_t maxOut)
+{
+    uint32_t numFound = 0;
+    for(uint32_t i = 0; i < table->columns[COMPONENT(Entity)].components.size; ++i)
+    {
+        if(((ECTColumn(Entity)*)&table->columns[COMPONENT(Entity)])->components.data[i].self.parent == entity)
+        {
+            outEntities[numFound] = ((ECTColumn(Entity)*)&table->columns[COMPONENT(Entity)])->components.data[i].self.id;
+            ++numFound;
+            if(numFound == maxOut) return numFound;
+        }
+    }
+    
+    return numFound;
+}

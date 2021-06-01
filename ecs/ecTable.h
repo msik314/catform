@@ -4,7 +4,7 @@
 #include "ecs/object.h"
 #include "ecs/ectColumn.h"
 #include "ecs/pointerMap.h"
-#include "ecs/component.h"
+#include "components/component.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -23,7 +23,9 @@ ECTable;
 
 void ecTableCreate(ECTable* table, uint32_t numColumns);
 void ecTableDestroy(ECTable* table);
+void ecTableMark(ECTable* table);
 void ecTableAddRemove(ECTable* table);
+void ecTableRemoveAll(ECTable* table);
 uint32_t ecTableGetChildren(const ECTable* table, ObjectID entity, ObjectID* outEntities, uint32_t maxOut);
 
 #define ecTableAdd(table, type, objectPtr, parentID, outID)\

@@ -18,13 +18,17 @@ extern "C"
 
 struct _ECTColumn;
 
-typedef void (*ECTColumnAddRemoveFun)(struct _ECTColumn* self, struct _ECTColumn* entities, PointerMap* pointerMap);
+typedef void (*ECTColumnParentFun)(struct _ECTColumn* self, struct _ECTColumn* entites, PointerMap* pointerMap);
+typedef void (*ECTColumnAddRemoveFun)(struct _ECTColumn* self, PointerMap* pointerMap);
 
 typedef struct _ECTColumn
 {
     Collection components;
     MWQueue addQueue;
     ECTColumnAddRemoveFun addRemove;
+    ECTColumnAddRemoveFun removeAll;
+    ECTColumnParentFun parentDelete;
+    ECTColumnParentFun parentAdd;
 }
 ECTColumn;
 
@@ -37,6 +41,9 @@ void ectColumnDestroyGeneric(ECTColumn* ectColumn);
 #define ectColumnAddID(TYPE) ectColumn ## TYPE ## AddID
 #define ectColumnRemove(TYPE) ectColumn ## TYPE ## Remove
 #define ectColumnAddRemove(TYPE) ectColumn ## TYPE ## AddRemove
+#define ectColumnRemoveAll(TYPE) ectColumn ## TYPE ## RemoveAll
+#define ectColumnParentDelete(TYPE) ectColumn ## TYPE ## ParentDelete
+#define ectColumnParentAdd(TYPE) ectColumn ## TYPE ## ParentAdd
 
 #define ECTCOLUMN_DECL(TYPE) \
 typedef struct\
@@ -44,6 +51,9 @@ typedef struct\
     Collection(TYPE) components;\
     MWQueue(TYPE) addQueue;\
     ECTColumnAddRemoveFun addRemove;\
+    ECTColumnAddRemoveFun removeAll;\
+    ECTColumnParentFun parentDelete;\
+    ECTColumnParentFun parentAdd;\
 }\
 ECTColumn(TYPE);\
 \
@@ -52,7 +62,10 @@ void ectColumnDestroy(TYPE)(ECTColumn(TYPE)* ectColumn);\
 void ectColumnAdd(TYPE)(ECTColumn(TYPE)* ectColumn, TYPE* original);\
 ObjectID ectColumnAddID(TYPE)(ECTColumn(TYPE)* ectColumn, TYPE* original, PointerMap* pointerMap);\
 bool ectColumnRemove(TYPE)(ECTColumn(TYPE)* ectColumn, uint32_t index);\
-void ectColumnAddRemove(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entites, PointerMap* pointerMap);
+void ectColumnAddRemove(TYPE)(ECTColumn* ectColumnGen, PointerMap* pointerMap);\
+void ectColumnRemoveAll(TYPE)(ECTColumn* ectColumnGen, PointerMap* pointerMap);\
+void ectColumnParentDelete(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, PointerMap* pointerMap);\
+void ectColumnParentAdd(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, PointerMap* pointerMap);\
 
 #ifdef __cplusplus
 };

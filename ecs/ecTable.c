@@ -5,8 +5,8 @@
 #include "ecs/object.h"
 #include "ecs/ectColumn.h"
 #include "ecs/pointerMap.h"
-#include "ecs/component.h"
-#include "ecs/entity.h"
+#include "components/component.h"
+#include "components/entity.h"
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -37,11 +37,32 @@ void ecTableDestroy(ECTable* table)
     }
 }
 
+void ecTableMark(ECTable* table)
+{
+    for(uint32_t i = 0; i < table->numColumns; ++i)
+    {
+        table->columns[i].parentDelete(&table->columns[i], &table->columns[COMPONENT(Entity)], &table->pointerMap);
+    }
+}
+
 void ecTableAddRemove(ECTable* table)
 {
     for(uint32_t i = 0; i < table->numColumns; ++i)
     {
-        table->columns[i].addRemove(&table->columns[i], &table->columns[COMPONENT(Entity)], &table->pointerMap); 
+        table->columns[i].addRemove(&table->columns[i], &table->pointerMap);
+    }
+    
+    for(uint32_t i = 0; i < table->numColumns; ++i)
+    {
+        table->columns[i].parentAdd(&table->columns[i], &table->columns[COMPONENT(Entity)], &table->pointerMap);
+    }
+}
+
+void ecTableRemoveAll(ECTable* table)
+{
+    for(uint32_t i = 0; i < table->numColumns; ++i)
+    {
+        table->columns[i].removeAll(&table->columns[i], &table->pointerMap);
     }
 }
 

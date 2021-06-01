@@ -12,5 +12,8 @@ COLLECTION_IMPL(bool)
 COLLECTION_IMPL(float)
 COLLECTION_IMPL(double)
 
-#include "ecs/Entity.h"
+#include "components/entity.h"
 COLLECTION_IMPL(Entity);
+
+#include "components/testComp.h"
+COLLECTION_IMPL(TestComp);

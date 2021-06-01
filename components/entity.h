@@ -8,7 +8,7 @@
 #include "containers/mwQueue.h"
 #include "ecs/object.h"
 #include "ecs/ectColumn.h"
-#include "ecs/ecTable.h"
+#include "core/tag.h"
 #include "util/atomics.h"
 
 #ifdef __cplusplus
@@ -23,6 +23,7 @@ typedef struct
     Object self;
     Transform transform;
     volatile uint64_t componentMask[2];
+    Tag name;
 }
 Entity;
 

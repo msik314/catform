@@ -38,7 +38,7 @@ void pointerMapDestroy(PointerMap* map);
 
 ObjectID pointerMapAdd(PointerMap* map, uint32_t idx);
 void pointerMapSet(PointerMap* map, ObjectID id, uint32_t idx);
-uint32_t pointerMapGet(PointerMap* map, ObjectID id);
+uint32_t pointerMapGet(const PointerMap* map, ObjectID id);
 void pointerMapRemove(PointerMap* map, ObjectID id);
 
 #ifdef __cplusplus

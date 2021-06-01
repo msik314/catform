@@ -6,8 +6,8 @@
 #include "containers/mwQueue.h"
 #include "ecs/pointerMap.h"
 #include "ecs/object.h"
-#include "ecs/entity.h"
-#include "ecs/component.h"
+#include "components/component.h"
+#include "components/entity.h"
 #include "util/atomics.h"
 
 #define ECTCOLUMN_IMPL(TYPE) \
@@ -16,6 +16,9 @@ void ectColumnCreate(TYPE)(ECTColumn(TYPE)* ectColumn)\
     collectionCreate(TYPE)(&ectColumn->components);\
     mwQueueCreate(TYPE)(&ectColumn->addQueue);\
     ectColumn->addRemove = ectColumnAddRemove(TYPE);\
+    ectColumn->removeAll = ectColumnRemoveAll(TYPE);\
+    ectColumn->parentDelete = ectColumnParentDelete(TYPE);\
+    ectColumn->parentAdd = ectColumnParentAdd(TYPE);\
 }\
 \
 void ectColumnDestroy(TYPE)(ECTColumn(TYPE)* ectColumn)\
@@ -43,15 +46,33 @@ bool ectColumnRemove(TYPE)(ECTColumn(TYPE)* ectColumn, uint32_t index)\
     return fetchOr32(&obj->flags, OBJECT_FLAG_REMOVE) & OBJECT_FLAG_REMOVE;\
 }\
 \
-void ectColumnAddRemove(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entities, PointerMap* pointerMap)\
+void ectColumnRemoveAll(TYPE)(ECTColumn* ectColumnGen, PointerMap* pointerMap)\
 {\
-    TYPE tmp;\
     ECTColumn(TYPE)* ectColumn = (ECTColumn(TYPE)*)ectColumnGen;\
-    Entity* parent;\
+    Object* obj;\
+    uint32_t idx;\
+    ObjectID oldId;\
+    \
+    idx = ectColumn->components.size;\
+    \
+    while(idx)\
+    {\
+        --idx;\
+        obj = (Object*)&ectColumn->components.data[idx];\
+        oldId = obj->id;\
+        pointerMapRemove(pointerMap, oldId);\
+        collectionRemove(TYPE)(&ectColumn->components, idx);\
+    }\
+}\
+\
+void ectColumnAddRemove(TYPE)(ECTColumn* ectColumnGen, PointerMap* pointerMap)\
+{\
+    ECTColumn(TYPE)* ectColumn = (ECTColumn(TYPE)*)ectColumnGen;\
     Object* obj;\
     uint32_t idx;\
     ObjectID oldId;\
     ObjectID newId;\
+    TYPE tmp;\
     \
     idx = ectColumn->components.size;\
     \
@@ -62,11 +83,6 @@ void ectColumnAddRemove(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entities, Poin
         if(atomicLoad32(&obj->flags) & OBJECT_FLAG_REMOVE)\
         {\
             oldId = obj->id;\
-            if(obj->parent != INVALID_OBJECT)\
-            {\
-                parent = &(((ECTColumn(Entity)*)entities)->components.data[pointerMapGet(pointerMap, obj->parent)]);\
-                entityResetHasComponent(parent, COMPONENT(TYPE));\
-            }\
             pointerMapRemove(pointerMap, oldId);\
             collectionRemove(TYPE)(&ectColumn->components, idx);\
             \
@@ -91,12 +107,47 @@ void ectColumnAddRemove(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entities, Poin
             pointerMapSet(pointerMap, tmp.self.id, ectColumn->components.size);\
         }\
         \
-        if(tmp.self.parent != INVALID_OBJECT)\
-        {\
-            parent = &(((ECTColumn(Entity)*)entities)->components.data[pointerMapGet(pointerMap, tmp.self.parent)]);\
-            entitySetHasComponent(parent, COMPONENT(TYPE));\
-        }\
-        \
         collectionAdd(TYPE)(&ectColumn->components, &tmp);\
     }\
-}
+}\
+\
+void ectColumnParentDelete(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, PointerMap* pointerMap)\
+{\
+    ECTColumn(TYPE)* ectColumn = (ECTColumn(TYPE)*)ectColumnGen;\
+    ECTColumn(Entity)* entities = (ECTColumn(Entity)*)entitiesGen;\
+    Entity* parent;\
+    Object* obj;\
+    uint32_t flags;\
+    \
+    for(uint32_t i = 0; i < ectColumn->components.size; ++i)\
+    {\
+        obj = (Object*)&ectColumn->components.data[i];\
+        if(obj->parent == INVALID_OBJECT) continue;\
+        parent = &entities->components.data[pointerMapGet(pointerMap, obj->parent)];\
+        \
+        flags = fetchOr32(&obj->flags, atomicLoad32(&parent->self.flags) & OBJECT_FLAG_REMOVE);\
+        if(flags & OBJECT_FLAG_REMOVE) entityResetHasComponent(parent, COMPONENT(TYPE));\
+    }\
+}\
+\
+void ectColumnParentAdd(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, PointerMap* pointerMap)\
+{\
+    ECTColumn(TYPE)* ectColumn = (ECTColumn(TYPE)*)ectColumnGen;\
+    ECTColumn(Entity)* entities = (ECTColumn(Entity)*)entitiesGen;\
+    Entity* parent;\
+    Object* obj;\
+    uint32_t idx;\
+    \
+    idx = ectColumn->components.size;\
+    \
+    while(idx)\
+    {\
+        --idx;\
+        obj = (Object*)&ectColumn->components.data[idx];\
+        if(!(atomicLoad32(&obj->flags) & OBJECT_FLAG_UNREADY)) break;\
+        if(obj->parent == INVALID_OBJECT) continue;\
+        parent = &entities->components.data[pointerMapGet(pointerMap, obj->parent)];\
+        entitySetHasComponent(parent, COMPONENT(TYPE));\
+    }\
+}\
+

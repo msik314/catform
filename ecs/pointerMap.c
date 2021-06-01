@@ -74,7 +74,7 @@ void pointerMapSet(PointerMap* map, ObjectID id, uint32_t idx)
     map->entries[toIndex(id)].value = idx;
 }
 
-uint32_t pointerMapGet(PointerMap* map, ObjectID id)
+uint32_t pointerMapGet(const PointerMap* map, ObjectID id)
 {
     PointerMapEntry e = map->entries[toIndex(id)];
     return e.checkID == id ? e.value : INVALID_OBJECT;

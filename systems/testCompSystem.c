@@ -59,18 +59,17 @@ void testCompCompReady(ECSystem* self, ECTColumn* column)
 void testCompSysFlags(ECSystem* self, void** flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime)
 {
     const ECTColumn(TestComp)* components = (ECTColumn(TestComp)*)&columns[COMPONENT(TestComp)];
-    const ECTColumn* entities = &columns[COMPONENT(Entity)];
     const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
+    uint32_t data;
     
-    bool* componentFlags = (bool*)linalloc(entities->components.size * sizeof(bool));
-    memset(componentFlags, false, entities->components.size * sizeof(bool));
+    uint32_t* componentFlags = (uint32_t*)linalloc((2 * components->components.size + 1) * sizeof(uint32_t));
+    
+    componentFlags[0] = components->components.size;
     
     for(uint32_t i = 0; i < components->components.size; ++i)
     {
-        if(components->components.data[i].number >= 15)
-        {
-            componentFlags[pointerMapGet(map, components->components.data[i].self.parent)] = true;
-        }
+        componentFlags[2 * i + 1] = components->components.data[i].number + 1;
+        componentFlags[2 * i + 2] = pointerMapGet(map, components->components.data[i].self.parent);
     }
     *flags = componentFlags;
 }
@@ -78,11 +77,12 @@ void testCompSysFlags(ECSystem* self, void** flags, const ECTColumn* columns, ui
 void testCompCompUpdate(ECSystem* self, ECTColumn* column, const void** flags, uint32_t numFlags, float deltaTime)
 {
     ECTColumn(TestComp)* components = (ECTColumn(TestComp)*)column;
+    uint32_t* componentFlags = (uint32_t*)flags[1]; //TestComp flags;
     
     for(uint32_t i = 0; i < components->components.size; ++i)
     {
+        components->components.data[i].number = componentFlags[2 * i + 1];
         printf("%u\n", components->components.data[i].number);
-        components->components.data[i].number += 1;
     }
 }
 

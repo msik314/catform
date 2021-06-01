@@ -76,12 +76,15 @@ void entityCompUpdate(ECSystem* self, ECTColumn* column, const void** flags, uin
 {
     ECTColumn(Entity)* entities = (ECTColumn(Entity)*)column;
     bool entityVisited[entities->components.size];
-    bool* testCompFlags = (bool*)flags[1]; //TestComp system
+    uint32_t* testCompFlags = (uint32_t*)flags[1]; //TestComp system
     const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
+    Entity* entity;
     
-    for(uint32_t i = 0; i < entities->components.size; ++i)
+    
+    for(uint32_t i = 0; i < testCompFlags[0]; ++i)
     {
-        if(testCompFlags[i]) fetchOr32(&entities->components.data[i].self.flags, OBJECT_FLAG_REMOVE);
+        entity = &entities->components.data[testCompFlags[2 * i + 2]];
+        fetchOr32(&entity->self.flags, (testCompFlags[2 * i + 1] >= 16) * OBJECT_FLAG_REMOVE);
     }
     
     memset(entityVisited, 0, entities->components.size * sizeof(bool));

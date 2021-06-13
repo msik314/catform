@@ -12,6 +12,8 @@ extern "C"
 #include <stdbool.h>
 #endif //__cplusplus
 
+typedef void* volatile SysFlags;
+
 struct _ECSystem;
 
 typedef void (*SysInitFun)(struct _ECSystem* self);
@@ -20,8 +22,8 @@ typedef void (*SysDestroyFun)(struct _ECSystem* self);
 typedef void (*SysColCreateFun)(ECTColumn* column);
 
 typedef void (*SysReadyFun)(struct _ECSystem* self, ECTColumn* column);
-typedef void (*SysFlagsFun)(struct _ECSystem* self, void** flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime);
-typedef void (*SysUpdateFun)(struct _ECSystem* self, ECTColumn* column, const void** flags, uint32_t numFlags, float deltaTime);
+typedef void (*SysUpdateFun)(struct _ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime);
+typedef void (*SysCopyFun)(struct _ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime);
 typedef void (*SysComponentDestroyFun)(struct _ECSystem* self, ECTColumn* column);
 
 typedef struct _ECSystem
@@ -32,8 +34,8 @@ typedef struct _ECSystem
     SysColCreateFun colCreate;
     
     SysReadyFun compReady;
-    SysFlagsFun sysFlags;
-    SysUpdateFun compUpdate;
+    SysUpdateFun sysUpdate;
+    SysCopyFun compCopy;
     SysComponentDestroyFun compDestroy;
     
     SysReadyFun compReadyAll;

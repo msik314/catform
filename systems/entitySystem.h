@@ -16,8 +16,8 @@ void entitySysInit(ECSystem* self);
 void entitySysDestroy(ECSystem* self);
 
 void entityCompReady(ECSystem* self, ECTColumn* column);
-void entitySysFlags(ECSystem* self, void** flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime);
-void entityCompUpdate(ECSystem* self, ECTColumn* column, const void** flags, uint32_t numFlags, float deltaTime);
+void entitySysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime);
+void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime);
 void entitycompDestroy(ECSystem* self, ECTColumn* column);
 
 void entityCompReadyAll(ECSystem* self, ECTColumn* column);

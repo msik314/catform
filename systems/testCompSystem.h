@@ -16,8 +16,8 @@ void testCompSysInit(ECSystem* self);
 void testCompSysDestroy(ECSystem* self);
 
 void testCompCompReady(ECSystem* self, ECTColumn* column);
-void testCompSysFlags(ECSystem* self, void** flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime);
-void testCompCompUpdate(ECSystem* self, ECTColumn* column, const void** flags, uint32_t numFlags, float deltaTime);
+void testCompSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime);
+void testCompCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime);
 void testCompCompDestroy(ECSystem* self, ECTColumn* column);
 
 void testCompCompReadyAll(ECSystem* self, ECTColumn* column);

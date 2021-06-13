@@ -51,7 +51,7 @@ void sceneManagerDestroy(SceneManager* sceneManager)
         APPLY(sceneManager->systems.data[i], sysDestroy);
     }
     
-    if(sceneManager->sysFlags) CAT_FREE(sceneManager->sysFlags);
+    if(sceneManager->sysFlags) CAT_FREE((void*)sceneManager->sysFlags);
     vectorDestroy(ECSystem)(&sceneManager->systems);
     
     CAT_FREE(sceneManager->columnSystems);
@@ -79,7 +79,7 @@ void sceneManagerInit(SceneManager* sceneManager)
         sceneManager->systems.data[colSys].colCreate(&sceneManager->ecTable.columns[i]);
     };
     
-    sceneManager->sysFlags = (void**)CAT_MALLOC(sceneManager->systems.size * sizeof(void*));
+    sceneManager->sysFlags = (SysFlags*)CAT_MALLOC(sceneManager->systems.size * sizeof(SysFlags));
     
     for(uint32_t i = 0; i < sceneManager->systems.size; ++i)
     {
@@ -115,14 +115,14 @@ void sceneManagerFrame(SceneManager* sceneManager, float deltaTime)
     //Phase 1
     for(uint32_t i = 0; i < sceneManager->systems.size; ++i)
     {
-        APPLY_ARGS(sceneManager->systems.data[i], sysFlags, &sceneManager->sysFlags[i], sceneManager->ecTable.columns, sceneManager->ecTable.numColumns, deltaTime);
+        APPLY_ARGS(sceneManager->systems.data[i], sysUpdate, &sceneManager->sysFlags[i], sceneManager->ecTable.columns, sceneManager->ecTable.numColumns, deltaTime);
     }
     
     //Phase 2
     for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
     {
         colSys = sceneManager->columnSystems[i];
-        APPLY_ARGS(sceneManager->systems.data[colSys], compUpdate, &sceneManager->ecTable.columns[i], (const void**)sceneManager->sysFlags, sceneManager->systems.size, deltaTime);
+        APPLY_ARGS(sceneManager->systems.data[colSys], compCopy, &sceneManager->ecTable.columns[i], (const SysFlags*)sceneManager->sysFlags, sceneManager->systems.size, deltaTime);
     }
     
     newTable = (ECTable*)atomicLoadPtr(&sceneManager->loadingScene);

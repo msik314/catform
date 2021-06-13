@@ -11,6 +11,7 @@
 #include "components/component.h"
 #include "components/entity.h"
 #include "components/testComp.h"
+#include "util/atomics.h"
 #include "util/linalloc.h"
 
 static void testCompColCreate(ECTColumn* column) {ectColumnCreate(TestComp)((ECTColumn(TestComp)*)column);}
@@ -23,8 +24,8 @@ const ECSystem TEST_COMP_SYSTEM =
     testCompColCreate,
     
     testCompCompReady,
-    testCompSysFlags,
-    testCompCompUpdate,
+    testCompSysUpdate,
+    testCompCompCopy,
     testCompCompDestroy,
     
     testCompCompReadyAll,
@@ -56,7 +57,7 @@ void testCompCompReady(ECSystem* self, ECTColumn* column)
     }
 }
 
-void testCompSysFlags(ECSystem* self, void** flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime)
+void testCompSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime)
 {
     const ECTColumn(TestComp)* components = (ECTColumn(TestComp)*)&columns[COMPONENT(TestComp)];
     const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
@@ -71,13 +72,13 @@ void testCompSysFlags(ECSystem* self, void** flags, const ECTColumn* columns, ui
         componentFlags[2 * i + 1] = components->components.data[i].number + 1;
         componentFlags[2 * i + 2] = pointerMapGet(map, components->components.data[i].self.parent);
     }
-    *flags = componentFlags;
+    atomicStorePtr(flags, componentFlags);
 }
 
-void testCompCompUpdate(ECSystem* self, ECTColumn* column, const void** flags, uint32_t numFlags, float deltaTime)
+void testCompCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime)
 {
     ECTColumn(TestComp)* components = (ECTColumn(TestComp)*)column;
-    uint32_t* componentFlags = (uint32_t*)flags[1]; //TestComp flags;
+    uint32_t* componentFlags = (uint32_t*)atomicLoadPtr(&flags[1]); //TestComp flags;
     
     for(uint32_t i = 0; i < components->components.size; ++i)
     {

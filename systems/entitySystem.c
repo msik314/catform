@@ -23,8 +23,8 @@ const ECSystem ENTITY_SYSTEM =
     entityColCreate,
     
     entityCompReady,
-    entitySysFlags,
-    entityCompUpdate,
+    entitySysUpdate,
+    entityCompCopy,
     entitycompDestroy,
     
     entityCompReadyAll,
@@ -55,7 +55,7 @@ void entityCompReady(ECSystem* self, ECTColumn* column)
     }
 }
 
-void entitySysFlags(ECSystem* self, void** flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime){}
+void entitySysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime){}
 
 static inline uint32_t markIfParentMarked(Entity* entities, bool* visited, uint32_t idx, const PointerMap* map)
 {
@@ -72,11 +72,11 @@ static inline uint32_t markIfParentMarked(Entity* entities, bool* visited, uint3
     return (fetchOr32(&entities[idx].self.flags, flags) | flags) & OBJECT_FLAG_REMOVE; 
 }
 
-void entityCompUpdate(ECSystem* self, ECTColumn* column, const void** flags, uint32_t numFlags, float deltaTime)
+void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime)
 {
     ECTColumn(Entity)* entities = (ECTColumn(Entity)*)column;
     bool entityVisited[entities->components.size];
-    uint32_t* testCompFlags = (uint32_t*)flags[1]; //TestComp system
+    uint32_t* testCompFlags = (uint32_t*)atomicLoadPtr(&flags[1]); //TestComp system
     const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
     Entity* entity;
     

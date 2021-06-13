@@ -18,7 +18,7 @@ typedef struct
     ECTable ecTable;
     
     Vector(ECSystem) systems;
-    void** sysFlags;
+    SysFlags* sysFlags;
     uint32_t* columnSystems;
     
     volatile ECTable* loadingScene;

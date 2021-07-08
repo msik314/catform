@@ -1,11 +1,14 @@
 #include "util/globalDefs.h"
 #include "ecs/sceneManager.h"
 
+#include "core/error.h"
+#include "ecs/ectColumn.h"
 #include "ecs/ecTable.h"
 #include "ecs/ecSystem.h"
 #include "containers/vector.h"
 #include "components/component.h"
 #include "util/atomics.h"
+#include "util/sync.h"
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -27,19 +30,25 @@ SceneManager* sceneManagerGetInstance()
     return &instance;
 }
 
-void sceneManagerCreate(SceneManager* sceneManager)
+void sceneManagerCreate(SceneManager* sceneManager, uint32_t numSyncThreads, uint32_t numTotalThreads)
 {
     ecTableCreate(&sceneManager->ecTable, NUM_COMPONENT_TYPES);
-    sceneManager->columnSystems = (uint32_t*)CAT_MALLOC(NUM_COMPONENT_TYPES * sizeof(uint32_t));
+    sceneManager->sysFlags = NULL;
     
     vectorCreate(ECSystem)(&sceneManager->systems);
-    sceneManager->sysFlags = NULL;
+    sceneManager->columnSystems = (uint32_t*)CAT_MALLOC(NUM_COMPONENT_TYPES * sizeof(uint32_t));
+    
+    schedulerCreate(&sceneManager->scheduler);
+    
+    barrierCreate(&sceneManager->phaseBarrier, numSyncThreads);
+    barrierCreate(&sceneManager->frameBarrier, numTotalThreads);
+    
     atomicStorePtr(&sceneManager->loadingScene, NULL);
 }
 
 void sceneManagerDestroy(SceneManager* sceneManager)
 {
-    uint32_t colSys;
+    register uint32_t colSys;
     for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
     {
         colSys = sceneManager->columnSystems[i];
@@ -52,9 +61,14 @@ void sceneManagerDestroy(SceneManager* sceneManager)
     }
     
     if(sceneManager->sysFlags) CAT_FREE((void*)sceneManager->sysFlags);
-    vectorDestroy(ECSystem)(&sceneManager->systems);
+    
+    barrierDestroy(&sceneManager->frameBarrier);
+    barrierDestroy(&sceneManager->phaseBarrier);
+    
+    schedulerDestroy(&sceneManager->scheduler);
     
     CAT_FREE(sceneManager->columnSystems);
+    vectorDestroy(ECSystem)(&sceneManager->systems);
     
     ecTableDestroy(&sceneManager->ecTable);
 }
@@ -72,7 +86,13 @@ void sceneManagerRegisterColumnSys(SceneManager* sceneManager, const ECSystem* s
 
 void sceneManagerInit(SceneManager* sceneManager)
 {
-    uint32_t colSys;
+    ECTColumnAddRemoveFun arFuns[NUM_COMPONENT_TYPES];
+    ECTColumnParentFun parentFuns[NUM_COMPONENT_TYPES];
+    JobFun job;
+    
+    uint32_t numColumns;
+    register uint32_t colSys;
+    
     for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
     {
         colSys = sceneManager->columnSystems[i];
@@ -84,6 +104,110 @@ void sceneManagerInit(SceneManager* sceneManager)
     for(uint32_t i = 0; i < sceneManager->systems.size; ++i)
     {
         APPLY(sceneManager->systems.data[i], sysInit);
+    }
+    
+    //Frame Start
+    job.genericFun = (JobGenericFun)barrierWait;
+    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->frameBarrier); ++i)
+    {
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->frameBarrier);
+    }
+    
+    //Phase 1
+    for(uint32_t i = 0; i < sceneManager->systems.size; ++i)
+    {
+        job.updateFun = sceneManager->systems.data[i].sysUpdate;
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sysUpdate), jobArgEncode(i, i));
+    }
+    
+    job.genericFun = (JobGenericFun)barrierWait;
+    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
+    {
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+    }
+    
+    //Phase 2
+    for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
+    {
+        colSys = sceneManager->columnSystems[i];
+        job.copyFun = sceneManager->systems.data[colSys].compCopy;
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compCopy), jobArgEncode(colSys, i));
+    }
+    
+    job.genericFun = (JobGenericFun)barrierWait;
+    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
+    {
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+    }
+    
+    //Phase 3
+    numColumns = ecTableGetMarkFuns(&sceneManager->ecTable, parentFuns, NUM_COMPONENT_TYPES);
+    for(uint32_t i = 0; i < numColumns; ++i)
+    {
+        job.parentFun = parentFuns[i];
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(colMark), jobArgEncode(0xffffffff, i));
+    }
+    
+    job.genericFun = (JobGenericFun)barrierWait;
+    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
+    {
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+    }
+    
+    //Phase 4
+    for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
+    {
+        colSys = sceneManager->columnSystems[i];
+        job.destroyFun = sceneManager->systems.data[colSys].compDestroy;
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compDestroy), jobArgEncode(colSys, i));
+    }
+    
+    job.genericFun = (JobGenericFun)barrierWait;
+    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
+    {
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+    }
+    
+    //Phase 5
+    numColumns = ecTableGetARFuns(&sceneManager->ecTable, arFuns, NUM_COMPONENT_TYPES);
+    for(uint32_t i = 0; i < numColumns; ++i)
+    {
+        job.addRemoveFun = arFuns[i];
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(colAddRemove), jobArgEncode(0xffffffff, i));
+    }
+    
+    job.genericFun = (JobGenericFun)barrierWait;
+    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
+    {
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+    }
+    
+    //Phase 6
+    numColumns = ecTableGetParentFuns(&sceneManager->ecTable, parentFuns, NUM_COMPONENT_TYPES);
+    for(uint32_t i = 0; i < numColumns; ++i)
+    {
+        job.parentFun = parentFuns[i];
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(colParent), jobArgEncode(0xffffffff, i));
+    }
+    
+    job.genericFun = (JobGenericFun)barrierWait;
+    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
+    {
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+    }
+    
+    //Phase 7
+    for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
+    {
+        colSys = sceneManager->columnSystems[i];
+        job.readyFun = sceneManager->systems.data[colSys].compReady;
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compReady), jobArgEncode(colSys, i));
+    }
+    
+    job.genericFun = (JobGenericFun)barrierWait;
+    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
+    {
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
     }
 }
 
@@ -107,75 +231,95 @@ bool sceneManagerLoadScene(SceneManager* sceneManager, ECTable* table)
     return true;
 }
 
-void sceneManagerFrame(SceneManager* sceneManager, float deltaTime)
+static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* systems, SysFlags* sysFlags, uint32_t numSystems, float deltaTime)
+{
+    Job job;
+    uint32_t sysIdx;
+    uint32_t colIdx;
+    
+    while(schedulerGetNext(scheduler, &job))
+    {
+        switch(job.jobType)
+        {
+        case JOB_TYPE(compReady):
+            jobArgDecode(job.args, &sysIdx, &colIdx);
+            job.function.readyFun(&systems[sysIdx], &table->columns[colIdx]);
+            break;
+        
+        case JOB_TYPE(sysUpdate):
+            jobArgDecode(job.args, &sysIdx, &colIdx);
+            job.function.updateFun(&systems[sysIdx], &sysFlags[sysIdx], (const ECTColumn*)table->columns, table->numColumns, deltaTime);
+            break;
+        
+        case JOB_TYPE(compCopy):
+            jobArgDecode(job.args, &sysIdx, &colIdx);
+            job.function.copyFun(&systems[sysIdx], &table->columns[colIdx], (const SysFlags*)sysFlags, numSystems, deltaTime);
+            break;
+        
+        case JOB_TYPE(compDestroy):
+            jobArgDecode(job.args, &sysIdx, &colIdx);
+            job.function.destroyFun(&systems[sysIdx], &table->columns[colIdx]);
+            break;
+        
+        case JOB_TYPE(colMark):
+        case JOB_TYPE(colParent):
+            jobArgDecode(job.args, &sysIdx, &colIdx);
+            job.function.parentFun(&table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
+            break;
+        
+        case JOB_TYPE(colAddRemove):
+            jobArgDecode(job.args, &sysIdx, &colIdx);
+            job.function.addRemoveFun(&table->columns[colIdx], &table->pointerMap);
+            break;
+        
+        case JOB_TYPE(sync):
+            job.function.genericFun(job.args); //Technically undefined behavior, void (*)(void*) != void (*)(Barrier*)
+            break;
+        
+        default:
+            printWarn(CAT_WARNING_EC_SYSTEM, "invalid job type encountered. Skipping...");
+            break;
+        }
+    }
+}
+
+void sceneManagerFrame(SceneManager* sceneManager, float deltaTime, bool lastFrame)
 {
     ECTable* newTable;
     register uint32_t colSys;
+
+    runSchedule(&sceneManager->scheduler, &sceneManager->ecTable, sceneManager->systems.data, sceneManager->sysFlags, sceneManager->systems.size, deltaTime);
     
-    //Phase 1
-    for(uint32_t i = 0; i < sceneManager->systems.size; ++i)
-    {
-        APPLY_ARGS(sceneManager->systems.data[i], sysUpdate, &sceneManager->sysFlags[i], sceneManager->ecTable.columns, sceneManager->ecTable.numColumns, deltaTime);
-    }
+    if(!lastFrame)schedulerReset(&sceneManager->scheduler);
     
-    //Phase 2
-    for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
-    {
-        colSys = sceneManager->columnSystems[i];
-        APPLY_ARGS(sceneManager->systems.data[colSys], compCopy, &sceneManager->ecTable.columns[i], (const SysFlags*)sceneManager->sysFlags, sceneManager->systems.size, deltaTime);
-    }
-    
-    newTable = (ECTable*)atomicLoadPtr(&sceneManager->loadingScene);
+    newTable = (ECTable*)atomicStorePtr(&sceneManager->loadingScene, NULL);
     if(newTable)
     {
-        //Phase 3
-            //Pass
-        
-        //Phase 4
+        //Destroy all
         for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
         {
             colSys = sceneManager->columnSystems[i];
             APPLY_ARGS(sceneManager->systems.data[colSys], compDestroyAll, &sceneManager->ecTable.columns[i]);
         };
         
-        //Phase 5
+        //Remove all
         ecTableRemoveAll(&sceneManager->ecTable);
         
-        //Synchronous between phases 5 and 6
+        //Replace table
         ecTableDestroy(&sceneManager->ecTable);
         sceneManager->ecTable = *newTable;
         CAT_FREE(newTable);
         
-        atomicStorePtr(&sceneManager->loadingScene, NULL);
-        
-        //Phase 6
+        //Ready all
         for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
         {
             colSys = sceneManager->columnSystems[i];
             APPLY_ARGS(sceneManager->systems.data[colSys], compReadyAll, &sceneManager->ecTable.columns[i]);
         };
-        
     }
-    else
-    {
-        //Phase 3
-        ecTableMark(&sceneManager->ecTable);
-        
-        //Phase 4
-        for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
-        {
-            colSys = sceneManager->columnSystems[i];
-            APPLY_ARGS(sceneManager->systems.data[colSys], compDestroy, &sceneManager->ecTable.columns[i]);
-        };
-    
-        //Phase 5
-        ecTableAddRemove(&sceneManager->ecTable);
-        
-        //Phase 6
-        for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
-        {
-            colSys = sceneManager->columnSystems[i];
-            APPLY_ARGS(sceneManager->systems.data[colSys], compReady, &sceneManager->ecTable.columns[i]);
-        };
-    }
+}
+
+void sceneManagerFollowFrame(SceneManager* sceneManager, float deltaTime)
+{
+    runSchedule(&sceneManager->scheduler, &sceneManager->ecTable, sceneManager->systems.data, sceneManager->sysFlags, sceneManager->systems.size, deltaTime);
 }

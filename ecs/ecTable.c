@@ -81,3 +81,36 @@ uint32_t ecTableGetChildren(const ECTable* table, ObjectID entity, ObjectID* out
     
     return numFound;
 }
+
+uint32_t ecTableGetMarkFuns(ECTable* table, ECTColumnParentFun* outFuns, uint32_t maxFuns)
+{
+    uint32_t idx;
+    for(idx = 0; idx < maxFuns && idx < table->numColumns; ++idx)
+    {
+        outFuns[idx] = table->columns[idx].parentDelete;
+    }
+    
+    return idx;
+}
+
+uint32_t ecTableGetARFuns(ECTable* table, ECTColumnAddRemoveFun* outFuns, uint32_t maxFuns)
+{
+    uint32_t idx;
+    for(idx = 0; idx < maxFuns && idx < table->numColumns; ++idx)
+    {
+        outFuns[idx] = table->columns[idx].addRemove;
+    }
+    
+    return idx;
+}
+
+uint32_t ecTableGetParentFuns(ECTable* table, ECTColumnParentFun* outFuns, uint32_t maxFuns)
+{
+    uint32_t idx;
+    for(idx = 0; idx < maxFuns && idx < table->numColumns; ++idx)
+    {
+        outFuns[idx] = table->columns[idx].parentAdd;
+    }
+    
+    return idx;
+}

@@ -2,6 +2,7 @@
 #define SYNC_H
 
 #include <stdint.h>
+#include <pthread.h>
 #include "util/atomics.h"
 #include "util/utilMacros.h"
 
@@ -110,70 +111,63 @@ static inline void recursiveMutexUnlock(RecursiveMutex* mutex, uintptr_t threadI
 }
 
 /*Barrier*/
-//Define Barrier as a union for casting
-typedef union
+typedef struct
 {
-    volatile uint32_t barrier;
-    PACKED(struct
-    {
-        volatile int16_t currentCount;
-        int16_t maxCount;
-    });
+    volatile int32_t currentCount;
+    int32_t maxCount;
 }
 Barrier;
 
-static inline void barrierCreate(Barrier* barrier, int16_t threadCount)
+static inline void barrierCreate(Barrier* barrier, int32_t threadCount)
 {
-    atomicStore16(&barrier->maxCount, threadCount);
-    atomicStore16(&barrier->currentCount, 0);
+    barrier->maxCount = threadCount;
+    atomicStore32(&barrier->currentCount, 0);
 }
 
 static inline void barrierDestroy(Barrier* barrier)
 {
-    atomicStore16(&barrier->currentCount, -barrier->maxCount);
+    atomicStore32(&barrier->currentCount, -barrier->maxCount);
 }
 
 static inline void barrierWait(Barrier* barrier)
 {
-    while(barrier->currentCount < 0){SPIN();}
-    uint16_t arrival = fetchAdd16(&barrier->currentCount, 1);
+    uint32_t arrival;
+    while((int32_t)atomicLoad32(&barrier->currentCount) < 0){SPIN();}
+    arrival = fetchAdd32(&barrier->currentCount, 1);
     
     if(arrival < barrier->maxCount - 1)
     {
-        while(barrier->currentCount > 0){SPIN();}
-        fetchAdd16(&barrier->currentCount, 1);
+        while((int32_t)atomicLoad32(&barrier->currentCount) > 0){SPIN();}
+        fetchAdd32(&barrier->currentCount, 1);
     }
     else
     {
-        atomicStore16(&barrier->currentCount, -barrier->maxCount + 1);
+        atomicStore32(&barrier->currentCount, -barrier->maxCount + 1);
     }
 }
 
+static inline int32_t barrierGetMaxThreads(Barrier* barrier) {return barrier->maxCount;}
+
 /*Semaphore*/
-//Define Semaphore as a union for casting
-typedef union
+typedef struct
 {
-    volatile uint32_t semaphore;
-    PACKED(struct
-    {
-        volatile int16_t currentCount;
-        int16_t maxCount;
-    });
+        volatile int32_t currentCount;
+        int32_t maxCount;
 }
 Semaphore;
 
-static inline void semaphoreCreate(Semaphore* semaphore, int16_t resourceCount)
+static inline void semaphoreCreate(Semaphore* semaphore, int32_t resourceCount)
 {
-    atomicStore16(&semaphore->currentCount, resourceCount);
-    atomicStore16(&semaphore->maxCount, resourceCount);
+    atomicStore32(&semaphore->currentCount, resourceCount);
+    atomicStore32(&semaphore->maxCount, resourceCount);
 }
 
 static inline void semaphoreDestroy(Semaphore* semaphore)
 {
-    atomicStore16(&semaphore->currentCount, semaphore->maxCount);
+    atomicStore32(&semaphore->currentCount, semaphore->maxCount);
 }
 
-static inline void semaphoreWait(Semaphore* semaphore, int16_t resourceCount)
+static inline void semaphoreWait(Semaphore* semaphore, int32_t resourceCount)
 {
     int16_t semaphoreCount = semaphore->currentCount;
     do
@@ -184,22 +178,13 @@ static inline void semaphoreWait(Semaphore* semaphore, int16_t resourceCount)
             semaphoreCount = semaphore->currentCount;
         }
     }
-    while(compareAndSwap16(&semaphore->currentCount, &semaphoreCount, semaphoreCount - resourceCount));
+    while(compareAndSwap32(&semaphore->currentCount, &semaphoreCount, semaphoreCount - resourceCount));
 }
 
-static inline void semaphoreSignal(Semaphore* semaphore, int16_t resourceCount)
+static inline void semaphoreSignal(Semaphore* semaphore, int32_t resourceCount)
 {
-    fetchAdd16(&semaphore->currentCount, resourceCount);
+    fetchAdd32(&semaphore->currentCount, resourceCount);
 }
-
-/*SignalGate*/
-typedef volatile uintptr_t SignalGate;
-
-static inline void signalGateCreate(SignalGate* signalGate){atomicStorePtr(signalGate, 0);}
-static inline void signalGateDestroy(SignalGate* signalGate){atomicStorePtr(signalGate, 0);}
-static inline void signalGateSet(SignalGate* signalGate, uintptr_t threadId){atomicStorePtr(signalGate, threadId);}
-static inline void signalGateClear(SignalGate* signalGate, uintptr_t threadId){if(*(uintptr_t*)signalGate == threadId)atomicStorePtr(signalGate, 0);}
-static inline void signalGateWait(SignalGate* signalGate){while(*signalGate){SPIN();}}
 
 #if defined (__GNUC__)
 #define threadFence() asm volatile("mfence")

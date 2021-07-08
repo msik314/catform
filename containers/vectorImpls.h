@@ -14,3 +14,6 @@ VECTOR_IMPL(double)
 
 #include "ecs/ecSystem.h"
 VECTOR_IMPL(ECSystem)
+
+#include "ecs/scheduler.h"
+VECTOR_IMPL(Job)

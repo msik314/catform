@@ -28,6 +28,10 @@ void ecTableAddRemove(ECTable* table);
 void ecTableRemoveAll(ECTable* table);
 uint32_t ecTableGetChildren(const ECTable* table, ObjectID entity, ObjectID* outEntities, uint32_t maxOut);
 
+uint32_t ecTableGetMarkFuns(ECTable* table, ECTColumnParentFun* outFuns, uint32_t maxFuns);
+uint32_t ecTableGetARFuns(ECTable* table, ECTColumnAddRemoveFun* outFuns, uint32_t maxFuns);
+uint32_t ecTableGetParentFuns(ECTable* table, ECTColumnParentFun* outFuns, uint32_t maxFuns);
+
 #define ecTableAdd(table, type, objectPtr, parentID, outID)\
 do\
 {\

@@ -48,6 +48,8 @@ void sceneManagerFrame(SceneManager* sceneManager, float deltaTime, bool lastFra
 
 void sceneManagerFollowFrame(SceneManager* sceneManager, float deltaTime);
 
+static inline void sceneManagerWaitFrame(SceneManager* sceneManager) {barrierWait(&sceneManager->frameBarrier);}
+
 #ifdef __cplusplus
 };
 #endif //__cplusplus

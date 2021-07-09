@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include "ecs/object.h"
+#include "ecs/ectVirtualTable.h"
 #include "ecs/ectColumn.h"
 #include "ecs/pointerMap.h"
 #include "components/component.h"
@@ -41,7 +42,7 @@ void ecTableMark(ECTable* table)
 {
     for(uint32_t i = 0; i < table->numColumns; ++i)
     {
-        table->columns[i].parentDelete(&table->columns[i], &table->columns[COMPONENT(Entity)], &table->pointerMap);
+        getVirtualParentDelete(i)(&table->columns[i], &table->columns[COMPONENT(Entity)], &table->pointerMap);
     }
 }
 
@@ -49,12 +50,12 @@ void ecTableAddRemove(ECTable* table)
 {
     for(uint32_t i = 0; i < table->numColumns; ++i)
     {
-        table->columns[i].addRemove(&table->columns[i], &table->pointerMap);
+        getVirtualAddRemove(i)(&table->columns[i], &table->pointerMap);
     }
     
     for(uint32_t i = 0; i < table->numColumns; ++i)
     {
-        table->columns[i].parentAdd(&table->columns[i], &table->columns[COMPONENT(Entity)], &table->pointerMap);
+        getVirtualParentAdd(i)(&table->columns[i], &table->columns[COMPONENT(Entity)], &table->pointerMap);
     }
 }
 
@@ -62,7 +63,7 @@ void ecTableRemoveAll(ECTable* table)
 {
     for(uint32_t i = 0; i < table->numColumns; ++i)
     {
-        table->columns[i].removeAll(&table->columns[i], &table->pointerMap);
+        getVirtualRemoveAll(i)(&table->columns[i], &table->pointerMap);
     }
 }
 
@@ -87,7 +88,7 @@ uint32_t ecTableGetMarkFuns(ECTable* table, ECTColumnParentFun* outFuns, uint32_
     uint32_t idx;
     for(idx = 0; idx < maxFuns && idx < table->numColumns; ++idx)
     {
-        outFuns[idx] = table->columns[idx].parentDelete;
+        outFuns[idx] = getVirtualParentDelete(idx);
     }
     
     return idx;
@@ -98,7 +99,7 @@ uint32_t ecTableGetARFuns(ECTable* table, ECTColumnAddRemoveFun* outFuns, uint32
     uint32_t idx;
     for(idx = 0; idx < maxFuns && idx < table->numColumns; ++idx)
     {
-        outFuns[idx] = table->columns[idx].addRemove;
+        outFuns[idx] = getVirtualAddRemove(idx);
     }
     
     return idx;
@@ -109,7 +110,7 @@ uint32_t ecTableGetParentFuns(ECTable* table, ECTColumnParentFun* outFuns, uint3
     uint32_t idx;
     for(idx = 0; idx < maxFuns && idx < table->numColumns; ++idx)
     {
-        outFuns[idx] = table->columns[idx].parentAdd;
+        outFuns[idx] = getVirtualParentAdd(idx);
     }
     
     return idx;

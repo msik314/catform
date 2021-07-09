@@ -8,6 +8,7 @@
 #include "ecs/object.h"
 #include "components/component.h"
 #include "components/entity.h"
+#include "ecs/ectVirtualTable.h"
 #include "util/atomics.h"
 
 #define ECTCOLUMN_IMPL(TYPE) \
@@ -15,10 +16,13 @@ void ectColumnCreate(TYPE)(ECTColumn(TYPE)* ectColumn)\
 {\
     collectionCreate(TYPE)(&ectColumn->components);\
     mwQueueCreate(TYPE)(&ectColumn->addQueue);\
-    ectColumn->addRemove = ectColumnAddRemove(TYPE);\
-    ectColumn->removeAll = ectColumnRemoveAll(TYPE);\
-    ectColumn->parentDelete = ectColumnParentDelete(TYPE);\
-    ectColumn->parentAdd = ectColumnParentAdd(TYPE);\
+    if(!getVirtualAddRemove(COMPONENT(TYPE)))\
+    {\
+        setVirtualAddRemove(COMPONENT(TYPE), ectColumnAddRemove(TYPE));\
+        setVirtualRemoveAll(COMPONENT(TYPE), ectColumnRemoveAll(TYPE));\
+        setVirtualParentDelete(COMPONENT(TYPE), ectColumnParentDelete(TYPE));\
+        setVirtualParentAdd(COMPONENT(TYPE), ectColumnParentAdd(TYPE));\
+    }\
 }\
 \
 void ectColumnDestroy(TYPE)(ECTColumn(TYPE)* ectColumn)\

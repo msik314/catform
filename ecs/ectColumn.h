@@ -25,10 +25,6 @@ typedef struct _ECTColumn
 {
     Collection components;
     MWQueue addQueue;
-    ECTColumnAddRemoveFun addRemove;
-    ECTColumnAddRemoveFun removeAll;
-    ECTColumnParentFun parentDelete;
-    ECTColumnParentFun parentAdd;
 }
 ECTColumn;
 
@@ -50,10 +46,6 @@ typedef struct\
 {\
     Collection(TYPE) components;\
     MWQueue(TYPE) addQueue;\
-    ECTColumnAddRemoveFun addRemove;\
-    ECTColumnAddRemoveFun removeAll;\
-    ECTColumnParentFun parentDelete;\
-    ECTColumnParentFun parentAdd;\
 }\
 ECTColumn(TYPE);\
 \

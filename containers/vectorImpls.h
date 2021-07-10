@@ -17,3 +17,7 @@ VECTOR_IMPL(ECSystem)
 
 #include "ecs/scheduler.h"
 VECTOR_IMPL(Job)
+
+#include "json/jsonData.h"
+VECTOR_IMPL(JsonValue)
+VECTOR_IMPL(JsonObject)

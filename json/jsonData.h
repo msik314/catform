@@ -16,6 +16,8 @@ extern "C"
 #include <stdbool.h>
 #endif //__cplusplus
 
+#define JSON_DATA_ROOT_INDEX 0xffffffff
+
 static inline Tag jsonKey(const char* key)
 {
     Tag tag;
@@ -88,6 +90,12 @@ void jsonDataCreate(JsonData* data);
 int32_t jsonDataParse(JsonData* data, const char* str, uint32_t len);
 void jsonDataDestroy(JsonData* data);
 static inline JsonObject* jsonDataGetChild(JsonData* data, uint32_t index){return &data->children.data[index];}
+
+void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value);
+uint32_t jsonDataAddObject(JsonData* data, uint32_t parent, Tag name, const JsonObject* object, JsonType objectType);
+
+void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value);
+uint32_t jsonDataArrayAddObject(JsonData* data, uint32_t parentArray, const JsonObject* object, JsonType objectType);
 
 #ifdef __cplusplus
 };

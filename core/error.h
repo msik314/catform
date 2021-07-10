@@ -64,6 +64,7 @@ static void printMsg(const char* msg)
 #define CAT_ERROR_CLI -20
 #define CAT_ERROR_FILE -21
 
+#define CAT_WARNING_JSON 1
 #define CAT_WARNING_VK_INSTANCE 2
 #define CAT_WARNING_VK_VALIDATION 3
 #define CAT_WARNING_VK_PHYS_DEVICE 4

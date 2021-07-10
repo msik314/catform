@@ -15,6 +15,7 @@
 #endif //CAT_MALLOC
 
 #define INVALID_ARRAY_PARENT -1
+
 #define UNRECOGNIZED_TYPE_STR "unrecognized json type "
 
 JsonType jsonObjectGetKey(JsonObject* object, const char* key, void* outVal)
@@ -32,21 +33,27 @@ JsonType jsonObjectGetKey(JsonObject* object, const char* key, void* outVal)
     case JSON_TYPE_ARRAY:
         *(uint32_t*)outVal = value.objectIndex;
         break;
+        
     case JSON_TYPE_STRING:
         *(char**)outVal = value.stringValue;
         break;
+        
     case JSON_TYPE_NULL:
         *(uintptr_t*)outVal = 0;
         break;
+        
     case JSON_TYPE_BOOL:
         *(bool*)outVal = value.boolValue;
         break;
+        
     case JSON_TYPE_REAL:
         *(double*)outVal = value.realValue;
         break;
+        
     case JSON_TYPE_INT:
         *(int32_t*)outVal = value.intValue;
         break;
+        
     default:
         break;
     }
@@ -62,21 +69,27 @@ JsonType jsonArrayGetIndex(JsonObject* object, uint32_t index, void* outVal)
     case JSON_TYPE_ARRAY:
         *(uint32_t*)outVal = object->array.data[index].objectIndex;
         break;
+        
     case JSON_TYPE_STRING:
         *(char**)outVal = object->array.data[index].stringValue;
         break;
+        
     case JSON_TYPE_NULL:
         *(uintptr_t*)outVal = 0;
         break;
+        
     case JSON_TYPE_BOOL:
         *(bool*)outVal = object->array.data[index].boolValue;
         break;
+        
     case JSON_TYPE_REAL:
         *(double*)outVal = object->array.data[index].realValue;
         break;
+        
     case JSON_TYPE_INT:
         *(int32_t*)outVal = object->array.data[index].intValue;
         break;
+        
     default:
         break;
     }
@@ -155,6 +168,7 @@ int32_t jsonDataParse(JsonData* data, const char* str, uint32_t len)
             value.objectIndex = data->children.size - 1;
             value.type = JSON_TYPE_OBJECT;
             break;
+            
         case JSMN_PRIMITIVE:
             switch (str[tokens[tokenIndex].start])
             {
@@ -162,14 +176,17 @@ int32_t jsonDataParse(JsonData* data, const char* str, uint32_t len)
                 value.stringValue = NULL;
                 value.type = JSON_TYPE_NULL;
                 break;
+                
             case 't':
                 value.boolValue = true;
                 value.type = JSON_TYPE_BOOL;
                 break;
+                
             case 'f':
                 value.boolValue = false;
                 value.type = JSON_TYPE_BOOL;
                 break;
+                
             default:
                 if(memchr(&str[tokens[tokenIndex].start], '.', tokenLen))
                 {
@@ -184,6 +201,7 @@ int32_t jsonDataParse(JsonData* data, const char* str, uint32_t len)
                 break;
             }
             break;
+            
         case JSMN_ARRAY:
             vectorCreate(JsonValue)(&object.array);
             vectorAdd(JsonObject)(&data->children, &object);
@@ -193,6 +211,7 @@ int32_t jsonDataParse(JsonData* data, const char* str, uint32_t len)
             arrayParent = tokenIndex;
             arrayIdx = 0;
             break;
+            
         case JSMN_STRING:
             vectorAdd(JsonObject)(&data->children, &object);
             value.objectIndex = data->children.size - 1;
@@ -200,6 +219,7 @@ int32_t jsonDataParse(JsonData* data, const char* str, uint32_t len)
             strSliceToString(&data->children.data[value.objectIndex].string, &str[tokens[tokenIndex].start], tokenLen);
             value.stringValue = data->children.data[value.objectIndex].string.data;
             break;
+            
         default:
             arrayIdx = strlen(UNRECOGNIZED_TYPE_STR);
             errorStr = CAT_MALLOC(arrayIdx + tokenLen + 3);
@@ -249,4 +269,111 @@ void jsonDataDestroy(JsonData* data)
     }
     
     vectorDestroy(JsonObject)(&data->children);
+}
+
+
+void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value)
+{
+    JsonObject* parentPtr;
+    JsonObject* stringVal;
+    JsonValue val;
+    
+    JsonObject obj = {};
+    
+    switch(value.type)
+    {
+    case JSON_TYPE_ARRAY:
+    case JSON_TYPE_OBJECT:
+        printWarn(CAT_WARNING_JSON, "jsonDataAddValue should only be used for primitives.  Use jsonDataAddObject for arrays and object");
+        return;
+        
+    case JSON_TYPE_UNKNOWN:
+        printWarn(CAT_WARNING_JSON, "cannot add JSON value with unknown type");
+        return;
+        
+    case JSON_TYPE_STRING:
+        vectorAdd(JsonObject)(&data->children, &obj);
+        stringVal = jsonDataGetChild(data, data->children.size - 1);
+        stringCreate(&stringVal->string);
+        cStrToString(&stringVal->string, value.stringValue);
+        
+        val.stringValue = stringVal->string.data;
+        val.type = JSON_TYPE_STRING;
+        parentPtr = parent != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parent) : &data->root;
+        hashmapSet(Tag, JsonValue)(&parentPtr->object, &name, &val);
+        break;
+    
+    default:
+        parentPtr = parent != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parent) : &data->root;
+        hashmapSet(Tag, JsonValue)(&parentPtr->object, &name, &value);
+    }
+}
+
+uint32_t jsonDataAddObject(JsonData* data, uint32_t parent, Tag name, const JsonObject* object, JsonType objectType)
+{
+    JsonObject* parentPtr;
+    JsonValue val;
+    uint32_t idx;
+    
+    val.type = objectType;
+    vectorAdd(JsonObject)(&data->children, object);
+    idx = data->children.size - 1;
+    val.objectIndex = idx;
+    parentPtr = parent != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parent) : &data->root;
+    hashmapSet(Tag, JsonValue)(&parentPtr->object, &name, &val);
+    
+    return idx;
+}
+
+void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value)
+{
+    JsonObject* parentPtr;
+    JsonObject* stringVal;
+    JsonValue val;
+    
+    JsonObject obj = {};
+    
+    switch(value.type)
+    {
+    case JSON_TYPE_ARRAY:
+    case JSON_TYPE_OBJECT:
+        printWarn(CAT_WARNING_JSON, "jsonDataAddValue should only be used for primitives.  Use jsonDataAddObject for arrays and object");
+        return;
+        
+    case JSON_TYPE_UNKNOWN:
+        printWarn(CAT_WARNING_JSON, "cannot add JSON value with unknown type");
+        return;
+        
+    case JSON_TYPE_STRING:
+        vectorAdd(JsonObject)(&data->children, &obj);
+        stringVal = jsonDataGetChild(data, data->children.size - 1);
+        stringCreate(&stringVal->string);
+        cStrToString(&stringVal->string, value.stringValue);
+        
+        val.stringValue = stringVal->string.data;
+        val.type = JSON_TYPE_STRING;
+        parentPtr = parentArray != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parentArray) : &data->root;
+        vectorAdd(JsonValue)(&parentPtr->array, &val);
+        break;
+    
+    default:
+        parentPtr = parentArray != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parentArray) : &data->root;
+        vectorAdd(JsonValue)(&parentPtr->array, &value);
+    }
+}
+
+uint32_t jsonDataArrayAddObject(JsonData* data, uint32_t parentArray, const JsonObject* object, JsonType objectType)
+{
+    JsonObject* parentPtr;
+    JsonValue val;
+    uint32_t idx;
+    
+    val.type = objectType;
+    vectorAdd(JsonObject)(&data->children, object);
+    idx = data->children.size - 1;
+    val.objectIndex = idx;
+    parentPtr = parentArray != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parentArray) : &data->root;
+    vectorAdd(JsonValue)(&parentPtr->array, &val);
+    
+    return idx;
 }

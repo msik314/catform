@@ -15,6 +15,9 @@
 #include "util/atomics.h"
 #include "util/linalloc.h"
 #include "util/sync.h"
+#include "json/jsonData.h"
+#include "json/jsonReader.h"
+#include "json/jsonWriter.h"
 
 void printColumn(ECTColumn(Entity)* column)
 {
@@ -310,6 +313,130 @@ void testSchedulerMulti()
     puts("Done Scheduler");
 }
 
+void _assert(uint32_t expr, const char* str)
+{
+    int *a;
+    if(!expr)
+    {
+        fputs(str, stderr);
+        a = NULL;
+        *a = 1;
+    }
+}
+
+
+void testJSONRead()
+{
+    JsonData json;
+    JsonObject* object;
+    JsonType type;
+    uint32_t objectIndex;
+    int32_t intVal;
+    bool boolVal;
+    char* strVal;
+    double realVal;
+    char buffer[1000] = {};
+    
+    puts("Testing JSON loading");
+    jsonLoadf(&json, "res/test.json");
+    
+    puts("Printing data");
+    type = jsonObjectGetKey(&json.root, "object", &objectIndex);
+    _assert(type == JSON_TYPE_OBJECT, "\"object\" not of type Object");
+    object = jsonDataGetChild(&json, objectIndex);
+    
+    type = jsonObjectGetKey(object, "real", &realVal);
+    _assert(type == JSON_TYPE_REAL, "\"object.real\" not of type Real");
+    printf("object.real: %.2f\n", realVal);
+    
+    type = jsonObjectGetKey(object, "int", &intVal);
+    _assert(type == JSON_TYPE_INT, "\"object.int\" not of type Int");
+    printf("object.int: %d\n", intVal);
+    
+    type = jsonObjectGetKey(object, "bool", &boolVal);
+    _assert(type == JSON_TYPE_BOOL, "\"object.bool\" not of type Bool");
+    printf("object.bool: %x\n", boolVal);
+    
+    type = jsonObjectGetKey(&json.root, "array", &objectIndex);
+    _assert(type == JSON_TYPE_ARRAY, "\"array\" not of type Array");
+    object = jsonDataGetChild(&json, objectIndex);
+    for(uint32_t i = 0; i < jsonArraySize(object); ++i)
+    {
+        type = jsonArrayGetIndex(object, i, &intVal);
+        printf("array[%d]: %d\n", i, intVal);
+    }
+    
+    type = jsonObjectGetKey(&json.root, "string", &strVal);
+    _assert(type == JSON_TYPE_STRING, "\"string\" not of type String");
+    printf("string: %s\n", strVal);
+    
+    puts("Dumping json");
+    intVal = jsonWrites(&json, buffer, sizeof(buffer)/sizeof(char));
+    printf("Json string with length %d:\n%s\n", intVal, buffer);
+    
+    puts("Cleaning up");
+    jsonDataDestroy(&json);
+    
+    puts("Done JSON loading");
+}
+
+void testJSONWrite()
+{
+    char buffer[1024] = {};
+    const int32_t jsonArrayData[6] = {2, 4, 6, 5, 7, 3};
+    JsonData data;
+    JsonObject obj;
+    JsonValue val;
+    Tag tag;
+    uint32_t parent;
+    const char* str = "I am a string";
+    
+    puts("Testing JSON writing");
+    
+    jsonDataCreate(&data);
+    
+    tagSet(&tag, "string");
+    val.stringValue = (char*)str;
+    val.type = JSON_TYPE_STRING;
+    jsonDataAddValue(&data, JSON_DATA_ROOT_INDEX, tag, val);
+    
+    tagSet(&tag, "array");
+    vectorCreate(JsonValue)(&obj.array);
+    parent = jsonDataAddObject(&data, JSON_DATA_ROOT_INDEX, tag, &obj, JSON_TYPE_ARRAY);
+    
+    val.type = JSON_TYPE_INT;
+    for(uint32_t i = 0; i < sizeof(jsonArrayData) / sizeof(int32_t); ++i)
+    {
+        val.intValue = jsonArrayData[i];
+        jsonDataArrayAddValue(&data, parent, val);
+    }
+    
+    tagSet(&tag, "object");
+    hashmapCreate(Tag, JsonValue)(&obj.object);
+    parent = jsonDataAddObject(&data, JSON_DATA_ROOT_INDEX, tag, &obj, JSON_TYPE_OBJECT);
+    
+    tagSet(&tag, "bool");
+    val.boolValue = false;
+    val.type = JSON_TYPE_BOOL;
+    jsonDataAddValue(&data, parent, tag, val);
+    
+    tagSet(&tag, "real");
+    val.realValue = 3.141592;
+    val.type = JSON_TYPE_REAL;
+    jsonDataAddValue(&data, parent, tag, val);
+    
+    tagSet(&tag, "int");
+    val.intValue = 65535;
+    val.type = JSON_TYPE_INT;
+    jsonDataAddValue(&data, parent, tag, val);
+    
+    jsonWrites(&data, buffer, 1024);
+    puts(buffer);
+    jsonDataDestroy(&data);
+    
+    puts("Done JSON writing");
+}
+
 int32_t main()
 {
     testECT();
@@ -323,6 +450,11 @@ int32_t main()
     
     testSchedulerMulti();
     puts("");
+    
+    testJSONRead();
+    puts("");
+    
+    testJSONWrite();
     
     return 0;
 }

@@ -385,7 +385,6 @@ void testJSONWrite()
     char buffer[1024] = {};
     const int32_t jsonArrayData[6] = {2, 4, 6, 5, 7, 3};
     JsonData data;
-    JsonObject obj;
     JsonValue val;
     Tag tag;
     uint32_t parent;
@@ -401,8 +400,7 @@ void testJSONWrite()
     jsonDataAddValue(&data, JSON_DATA_ROOT_INDEX, tag, val);
     
     tagSet(&tag, "array");
-    vectorCreate(JsonValue)(&obj.array);
-    parent = jsonDataAddObject(&data, JSON_DATA_ROOT_INDEX, tag, &obj, JSON_TYPE_ARRAY);
+    parent = jsonDataAddArray(&data, JSON_DATA_ROOT_INDEX, tag);
     
     val.type = JSON_TYPE_INT;
     for(uint32_t i = 0; i < sizeof(jsonArrayData) / sizeof(int32_t); ++i)
@@ -412,8 +410,7 @@ void testJSONWrite()
     }
     
     tagSet(&tag, "object");
-    hashmapCreate(Tag, JsonValue)(&obj.object);
-    parent = jsonDataAddObject(&data, JSON_DATA_ROOT_INDEX, tag, &obj, JSON_TYPE_OBJECT);
+    parent = jsonDataAddObject(&data, JSON_DATA_ROOT_INDEX, tag);
     
     tagSet(&tag, "bool");
     val.boolValue = false;

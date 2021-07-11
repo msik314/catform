@@ -92,10 +92,14 @@ void jsonDataDestroy(JsonData* data);
 static inline JsonObject* jsonDataGetChild(JsonData* data, uint32_t index){return &data->children.data[index];}
 
 void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value);
-uint32_t jsonDataAddObject(JsonData* data, uint32_t parent, Tag name, const JsonObject* object, JsonType objectType);
+uint32_t jsonDataAddObject(JsonData* data, uint32_t parent, Tag name);
+uint32_t jsonDataAddArray(JsonData* data, uint32_t parent, Tag name);
+
 
 void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value);
-uint32_t jsonDataArrayAddObject(JsonData* data, uint32_t parentArray, const JsonObject* object, JsonType objectType);
+uint32_t jsonDataArrayAddObject(JsonData* data, uint32_t parent);
+uint32_t jsonDataArrayAddArray(JsonData* data, uint32_t parent);
+
 
 #ifdef __cplusplus
 };

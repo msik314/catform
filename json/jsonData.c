@@ -309,14 +309,36 @@ void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value
     }
 }
 
-uint32_t jsonDataAddObject(JsonData* data, uint32_t parent, Tag name, const JsonObject* object, JsonType objectType)
+uint32_t jsonDataAddObject(JsonData* data, uint32_t parent, Tag name)
 {
+    JsonObject object;
     JsonObject* parentPtr;
     JsonValue val;
     uint32_t idx;
     
-    val.type = objectType;
-    vectorAdd(JsonObject)(&data->children, object);
+    val.type = JSON_TYPE_OBJECT;
+    hashmapCreate(Tag, JsonValue)(&object.object);
+    
+    vectorAdd(JsonObject)(&data->children, &object);
+    idx = data->children.size - 1;
+    val.objectIndex = idx;
+    parentPtr = parent != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parent) : &data->root;
+    hashmapSet(Tag, JsonValue)(&parentPtr->object, &name, &val);
+    
+    return idx;
+}
+
+uint32_t jsonDataAddArray(JsonData* data, uint32_t parent, Tag name)
+{
+    JsonObject object;
+    JsonObject* parentPtr;
+    JsonValue val;
+    uint32_t idx;
+    
+    val.type = JSON_TYPE_ARRAY;
+    vectorCreate(JsonValue)(&object.array);
+    
+    vectorAdd(JsonObject)(&data->children, &object);
     idx = data->children.size - 1;
     val.objectIndex = idx;
     parentPtr = parent != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parent) : &data->root;
@@ -362,14 +384,36 @@ void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value
     }
 }
 
-uint32_t jsonDataArrayAddObject(JsonData* data, uint32_t parentArray, const JsonObject* object, JsonType objectType)
+uint32_t jsonDataArrayAddObject(JsonData* data, uint32_t parentArray)
 {
+    JsonObject object;
     JsonObject* parentPtr;
     JsonValue val;
     uint32_t idx;
     
-    val.type = objectType;
-    vectorAdd(JsonObject)(&data->children, object);
+    val.type = JSON_TYPE_OBJECT;
+    hashmapCreate(Tag, JsonValue)(&object.object);
+    
+    vectorAdd(JsonObject)(&data->children, &object);
+    idx = data->children.size - 1;
+    val.objectIndex = idx;
+    parentPtr = parentArray != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parentArray) : &data->root;
+    vectorAdd(JsonValue)(&parentPtr->array, &val);
+    
+    return idx;
+}
+
+uint32_t jsonDataArrayAddArray(JsonData* data, uint32_t parentArray)
+{
+    JsonObject object;
+    JsonObject* parentPtr;
+    JsonValue val;
+    uint32_t idx;
+    
+    val.type = JSON_TYPE_ARRAY;
+    vectorCreate(JsonValue)(&object.array);
+    
+    vectorAdd(JsonObject)(&data->children, &object);
     idx = data->children.size - 1;
     val.objectIndex = idx;
     parentPtr = parentArray != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parentArray) : &data->root;

@@ -49,7 +49,7 @@ void hashmapDestroy(K, V)(Hashmap(K, V)* map)\
     CAT_FREE(map->map);\
 }\
 \
-static inline int32_t hashmapIndex(K,V)(Hashmap(K, V)* map, const K* key)\
+static inline int32_t hashmapIndex(K,V)(const Hashmap(K, V)* map, const K* key)\
 {\
     uint32_t hash = hashPtr(key, sizeof(K));\
     uint32_t mask = (map->capacity - 1);\
@@ -68,7 +68,7 @@ static inline int32_t hashmapIndex(K,V)(Hashmap(K, V)* map, const K* key)\
     return -1;\
 }\
 \
-int32_t hashmapGet(K, V)(Hashmap(K, V)* map, const K* key, V* outValue)\
+int32_t hashmapGet(K, V)(const Hashmap(K, V)* map, const K* key, V* outValue)\
 {\
     int32_t index = hashmapIndex(K, V)(map, key);\
     if(index >= 0)\
@@ -192,7 +192,8 @@ void hashmapClear(K, V)(Hashmap(K, V)* map)\
     CAT_FREE(map->map);\
     hashmapInit(K, V)(map, STARTING_SIZE);\
 }\
-HashmapIterator(K, V) hashmapBegin(K, V)(Hashmap(K, V)* map)\
+\
+HashmapIterator(K, V) hashmapBegin(K, V)(const Hashmap(K, V)* map)\
 {\
     HashmapIterator(K, V) itr = {map, 0};\
     while(!hashmapIteratorEnd(K, V)(&itr) && !map->map[itr.idx].hash && !(map->map[itr.idx].hash & INVALID_HASH))\
@@ -201,6 +202,7 @@ HashmapIterator(K, V) hashmapBegin(K, V)(Hashmap(K, V)* map)\
     }\
     return itr;\
 }\
+\
 bool hashmapIteratorNext(K, V)(HashmapIterator(K, V)* itr)\
 {\
     do\

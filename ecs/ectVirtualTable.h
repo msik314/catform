@@ -23,6 +23,12 @@ void setVirtualParentDelete(uint32_t column, ECTColumnParentFun parentDelete);
 ECTColumnParentFun getVirtualParentAdd(uint32_t column);
 void setVirtualParentAdd(uint32_t column, ECTColumnParentFun parentAdd);
 
+ECTColumnSerializeFun getVirtualSerialize(uint32_t column);
+void setVirtualSerialize(uint32_t column, ECTColumnSerializeFun serialize);
+
+ECTColumnDeserializeFun getVirtualDeserialize(uint32_t column);
+void setVirtualDeserialize(uint32_t column, ECTColumnDeserializeFun deserialize);
+
 #ifdef __cplusplus
 };
 #endif //__cplusplus

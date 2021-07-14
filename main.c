@@ -2,6 +2,13 @@
 #include <stdint.h>
 #include <pthread.h>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else //_WIN32
+#include <unistd.h>
+#endif //_WIN32
+
 #include "core/tag.h"
 #include "components/entity.h"
 #include "components/testComp.h"
@@ -434,8 +441,63 @@ void testJSONWrite()
     puts("Done JSON writing");
 }
 
-int32_t main()
+void testSceneSerialize()
 {
+    char buffer[1024] = {};
+    ECTable table;
+    JsonData data;
+    uint32_t idx;
+    
+    puts("Testing scene loading/saving");
+    jsonLoadf(&data, "res/testScn.cat");
+    
+    puts("Loading scene"); 
+    jsonObjectGetKey(&data.root, "table", &idx);
+    
+    ecTableCreate(&table, NUM_COMPONENT_TYPES);
+    ectColumnCreate(Entity)((ECTColumn(Entity)*)&table.columns[0]);
+    ectColumnCreate(TestComp)((ECTColumn(TestComp)*)&table.columns[1]);
+    
+    ecTableDeserialize(&table, &data, idx);
+    jsonDataDestroy(&data);
+    
+    ecTableMark(&table);
+    ecTableAddRemove(&table);
+    
+    puts("Saving scene");
+    jsonDataCreate(&data);
+    
+    ecTableSerialize(&table, &data, JSON_DATA_ROOT_INDEX);
+    jsonDataAddArray(&data, JSON_DATA_ROOT_INDEX, jsonKey("resources"));
+    
+    jsonWrites(&data, buffer, 1024);
+    puts(buffer);
+    
+    ecTableDestroy(&table);
+    jsonDataDestroy(&data);
+    
+    puts("Done scene loading/saving");
+}
+
+int32_t main(int argc, char** argv)
+{
+    ptrdiff_t pathLen;
+    
+    pathLen = strrchr(argv[0], '/') - argv[0];
+    if(pathLen < 0) pathLen = strrchr(argv[0], '\\') - argv[0];
+    
+    if(pathLen > 0)
+    {
+        char pathDir[pathLen + 1];
+        memcpy(pathDir, argv[0], pathLen);
+        pathDir[pathLen] = 0;
+#ifdef _WIN32
+        SetCurrentDirectory(pathDir);
+#else //_WIN32
+        chdir(pathDir);
+#endif //_WIN32
+    }
+    
     testECT();
     puts("");
     
@@ -452,6 +514,9 @@ int32_t main()
     puts("");
     
     testJSONWrite();
+    puts("");
+    
+    testSceneSerialize();
     
     return 0;
 }

@@ -2,9 +2,11 @@
 #define ECTCOLUMN_H
 
 #include "containers/collection.h"
+#include "containers/hashmap.h"
 #include "containers/mwQueue.h"
 #include "ecs/pointerMap.h"
 #include "ecs/object.h"
+#include "json/jsonData.h"
 
 #define INVALID_COLUMN_INDEX 0xffffffff
 
@@ -20,6 +22,9 @@ struct _ECTColumn;
 
 typedef void (*ECTColumnParentFun)(struct _ECTColumn* self, struct _ECTColumn* entites, PointerMap* pointerMap);
 typedef void (*ECTColumnAddRemoveFun)(struct _ECTColumn* self, PointerMap* pointerMap);
+
+typedef void (*ECTColumnSerializeFun)(const struct _ECTColumn* self, JsonData* data, uint32_t column);
+typedef void (*ECTColumnDeserializeFun)(struct _ECTColumn* self, const JsonData* data, uint32_t column, const Hashmap(ObjectID, ObjectID)* refMap);
 
 typedef struct _ECTColumn
 {

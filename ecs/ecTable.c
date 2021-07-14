@@ -8,6 +8,7 @@
 #include "ecs/pointerMap.h"
 #include "components/component.h"
 #include "components/entity.h"
+#include "core/error.h"
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -83,7 +84,7 @@ uint32_t ecTableGetChildren(const ECTable* table, ObjectID entity, ObjectID* out
     return numFound;
 }
 
-uint32_t ecTableGetMarkFuns(ECTable* table, ECTColumnParentFun* outFuns, uint32_t maxFuns)
+uint32_t ecTableGetMarkFuns(const ECTable* table, ECTColumnParentFun* outFuns, uint32_t maxFuns)
 {
     uint32_t idx;
     for(idx = 0; idx < maxFuns && idx < table->numColumns; ++idx)
@@ -94,7 +95,7 @@ uint32_t ecTableGetMarkFuns(ECTable* table, ECTColumnParentFun* outFuns, uint32_
     return idx;
 }
 
-uint32_t ecTableGetARFuns(ECTable* table, ECTColumnAddRemoveFun* outFuns, uint32_t maxFuns)
+uint32_t ecTableGetARFuns(const ECTable* table, ECTColumnAddRemoveFun* outFuns, uint32_t maxFuns)
 {
     uint32_t idx;
     for(idx = 0; idx < maxFuns && idx < table->numColumns; ++idx)
@@ -105,7 +106,7 @@ uint32_t ecTableGetARFuns(ECTable* table, ECTColumnAddRemoveFun* outFuns, uint32
     return idx;
 }
 
-uint32_t ecTableGetParentFuns(ECTable* table, ECTColumnParentFun* outFuns, uint32_t maxFuns)
+uint32_t ecTableGetParentFuns(const ECTable* table, ECTColumnParentFun* outFuns, uint32_t maxFuns)
 {
     uint32_t idx;
     for(idx = 0; idx < maxFuns && idx < table->numColumns; ++idx)
@@ -114,4 +115,76 @@ uint32_t ecTableGetParentFuns(ECTable* table, ECTColumnParentFun* outFuns, uint3
     }
     
     return idx;
+}
+
+ObjectID ecTableMap(ECTable* table, Object* object)
+{
+    object->id = pointerMapAdd(&table->pointerMap, INVALID_COLUMN_INDEX);
+    return object->id;
+}
+
+void ecTableSerialize(const ECTable* table, JsonData* data, uint32_t parentObject)
+{
+    ECTColumnSerializeFun colFun;
+    uint32_t parentArray = jsonDataAddArray(data, parentObject, jsonKey("table"));
+    
+    int32_t childArray;
+    
+    for(uint32_t i = 0; i < table->numColumns; ++i)
+    {
+        childArray = jsonDataArrayAddArray(data, parentArray);
+        
+        colFun = getVirtualSerialize(i);
+        if(!colFun) continue;
+        
+        colFun(&table->columns[i], data, childArray);
+    }
+}
+
+void ecTableDeserialize(ECTable* table, const JsonData* data, uint32_t parentObject)
+{
+    Hashmap(ObjectID, ObjectID) idMap = {};
+    ECTColumnDeserializeFun colFun;
+    const JsonObject* parent;
+    const JsonObject* colObject;
+    const JsonObject* component;
+    int32_t colIdx;
+    int32_t compIdx;
+    JsonType type;
+    ObjectID objId = INVALID_OBJECT;
+    ObjectID newId = INVALID_OBJECT;
+    
+    hashmapCreate(ObjectID, ObjectID)(&idMap);
+    hashmapSet(ObjectID, ObjectID)(&idMap, &objId, &newId);
+    
+    parent = jsonDataGetChildConst(data, parentObject);
+    
+    for(uint32_t i = 0; i < table->numColumns; ++i)
+    {
+        jsonArrayGetIndex(parent, i, &colIdx);
+        colObject = jsonDataGetChildConst(data, colIdx);
+        
+        for(uint32_t j = 0; j <  jsonArraySize(colObject); ++j)
+        {
+            jsonArrayGetIndex(colObject, j, &compIdx);
+            component = jsonDataGetChildConst(data, compIdx);
+            
+            type = jsonObjectGetKey(component, "id", &objId);
+            if(type == JSON_TYPE_UNKNOWN) continue;
+            
+            newId = pointerMapAdd(&table->pointerMap, INVALID_COLUMN_INDEX);
+            hashmapSet(ObjectID, ObjectID)(&idMap, &objId, &newId);
+        }
+    }
+    
+    for(uint32_t i = 0; i < table->numColumns; ++i)
+    {
+        colFun = getVirtualDeserialize(i);
+        if(!colFun) continue;
+        
+        jsonArrayGetIndex(parent, i, &colIdx);
+        colFun(&table->columns[i], data, colIdx, &idMap);
+    }
+    
+    hashmapDestroy(ObjectID, ObjectID)(&idMap);
 }

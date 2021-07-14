@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "components/component.h"
 
+//AddRemove
 static inline ECTColumnAddRemoveFun* getAddRemoveTable()
 {
     static ECTColumnAddRemoveFun addRemoveFuns[NUM_COMPONENT_TYPES];
@@ -20,6 +21,7 @@ void setVirtualAddRemove(uint32_t column, ECTColumnAddRemoveFun addRemove)
     getAddRemoveTable()[column] = addRemove;
 }
 
+//RemoveAll
 static inline ECTColumnAddRemoveFun* getRemoveAllTable()
 {
     static ECTColumnAddRemoveFun removeAllFuns[NUM_COMPONENT_TYPES];
@@ -36,6 +38,7 @@ void setVirtualRemoveAll(uint32_t column, ECTColumnAddRemoveFun removeAll)
     getRemoveAllTable()[column] = removeAll;
 }
 
+//ParentDelete
 static inline ECTColumnParentFun* getParentDeleteTable()
 {
     static ECTColumnParentFun parentDeleteFuns[NUM_COMPONENT_TYPES];
@@ -52,6 +55,7 @@ void setVirtualParentDelete(uint32_t column, ECTColumnParentFun parentDelete)
     getParentDeleteTable()[column] = parentDelete;
 }
 
+//ParentAdd
 static inline ECTColumnParentFun* getParentAddTable()
 {
     static ECTColumnParentFun parentAddFuns[NUM_COMPONENT_TYPES];
@@ -66,4 +70,38 @@ ECTColumnParentFun getVirtualParentAdd(uint32_t column)
 void setVirtualParentAdd(uint32_t column, ECTColumnParentFun parentAdd)
 {
     getParentAddTable()[column] = parentAdd;
+}
+
+//Serialize
+static inline ECTColumnSerializeFun* getSerializeTable()
+{
+    static ECTColumnSerializeFun serializeFuns[NUM_COMPONENT_TYPES];
+    return serializeFuns;
+}
+
+ECTColumnSerializeFun getVirtualSerialize(uint32_t column)
+{
+    return getSerializeTable()[column];
+}
+
+void setVirtualSerialize(uint32_t column, ECTColumnSerializeFun serialize)
+{
+    getSerializeTable()[column] = serialize;
+}
+
+//Deserialize
+static inline ECTColumnDeserializeFun* getDeserializeTable()
+{
+    static ECTColumnDeserializeFun deserializeFuns[NUM_COMPONENT_TYPES];
+    return deserializeFuns;
+}
+
+ECTColumnDeserializeFun getVirtualDeserialize(uint32_t column)
+{
+    return getDeserializeTable()[column];
+}
+
+void setVirtualDeserialize(uint32_t column, ECTColumnDeserializeFun deserialize)
+{
+    getDeserializeTable()[column] = deserialize;
 }

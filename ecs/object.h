@@ -2,6 +2,7 @@
 #define OBJECT_H
 
 #include <stdint.h>
+#include "containers/hashmap.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -14,6 +15,7 @@ extern "C"
 #define OBJECT_FLAG_UNREADY 0x00000002
     
 typedef uint32_t ObjectID;
+HASHMAP_DECL(ObjectID, ObjectID)
 
 typedef struct
 {

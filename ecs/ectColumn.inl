@@ -11,7 +11,7 @@
 #include "ecs/ectVirtualTable.h"
 #include "util/atomics.h"
 
-#define ECTCOLUMN_IMPL(TYPE) \
+#define ECTCOLUMN_IMPL_SER(TYPE,SERIALIZE,DESERIALIZE) \
 void ectColumnCreate(TYPE)(ECTColumn(TYPE)* ectColumn)\
 {\
     collectionCreate(TYPE)(&ectColumn->components);\
@@ -22,6 +22,8 @@ void ectColumnCreate(TYPE)(ECTColumn(TYPE)* ectColumn)\
         setVirtualRemoveAll(COMPONENT(TYPE), ectColumnRemoveAll(TYPE));\
         setVirtualParentDelete(COMPONENT(TYPE), ectColumnParentDelete(TYPE));\
         setVirtualParentAdd(COMPONENT(TYPE), ectColumnParentAdd(TYPE));\
+        setVirtualSerialize(COMPONENT(TYPE), SERIALIZE);\
+        setVirtualDeserialize(COMPONENT(TYPE), DESERIALIZE);\
     }\
 }\
 \
@@ -33,7 +35,6 @@ void ectColumnDestroy(TYPE)(ECTColumn(TYPE)* ectColumn)\
 \
 void ectColumnAdd(TYPE)(ECTColumn(TYPE)* ectColumn, TYPE* original)\
 {\
-    original->self.id = INVALID_OBJECT;\
     mwQueuePush(TYPE)(&ectColumn->addQueue, original);\
 }\
 \
@@ -102,7 +103,7 @@ void ectColumnAddRemove(TYPE)(ECTColumn* ectColumnGen, PointerMap* pointerMap)\
     while(mwQueuePop(TYPE)(&ectColumn->addQueue, &tmp))\
     {\
         fetchOr32(&tmp.self.flags, OBJECT_FLAG_UNREADY);\
-        if(tmp.self.id == INVALID_COLUMN_INDEX)\
+        if(tmp.self.id == INVALID_OBJECT)\
         {\
             tmp.self.id = pointerMapAdd(pointerMap, ectColumn->components.size);\
         }\
@@ -155,3 +156,4 @@ void ectColumnParentAdd(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, P
     }\
 }\
 
+#define ECTCOLUMN_IMPL(TYPE) ECTCOLUMN_IMPL_SER(TYPE, NULL, NULL)

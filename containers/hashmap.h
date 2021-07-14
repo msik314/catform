@@ -53,19 +53,19 @@ Hashmap(K, V);\
 \
 void hashmapCreate(K, V)(Hashmap(K, V)* map);\
 void hashmapDestroy(K, V)(Hashmap(K, V)* map);\
-int32_t hashmapGet(K, V)(Hashmap(K, V)* map, const K* key, V* outValue);\
+int32_t hashmapGet(K, V)(const Hashmap(K, V)* map, const K* key, V* outValue);\
 void hashmapSet(K, V)(Hashmap(K, V)* map, const K* key, const V* value);\
 void hashmapRemove(K, V)(Hashmap(K, V)* map, const K* key);\
 void hashmapClear(K, V)(Hashmap(K, V)* map);\
 \
 typedef struct\
 {\
-    Hashmap(K, V)* map;\
+    const Hashmap(K, V)* map;\
     uint32_t idx;\
 }\
 HashmapIterator(K, V);\
 \
-HashmapIterator(K, V) hashmapBegin(K, V)(Hashmap(K, V)* map);\
+HashmapIterator(K, V) hashmapBegin(K, V)(const Hashmap(K, V)* map);\
 bool hashmapIteratorNext(K, V)(HashmapIterator(K, V)* itr);\
 \
 static inline bool hashmapIteratorEnd(K, V)(const HashmapIterator(K, V)* itr)\
@@ -81,7 +81,7 @@ static inline void hashmapIteratorKey(K, V)(const HashmapIterator(K, V)* itr, K*
 static inline void hashmapIteratorValue(K, V)(const HashmapIterator(K, V)* itr, V* outValue)\
 {\
     *outValue = itr->map->map[itr->idx].value;\
-}\
+}
 
 #ifdef __cplusplus
 };

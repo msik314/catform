@@ -20,15 +20,14 @@ extern "C"
 
 static inline Tag jsonKey(const char* key)
 {
-    Tag tag;
-    strncpy(tag.data, key, sizeof(tag.data));
+    Tag tag = {};
+    tagSet(&tag, key);
     return tag;
 }
 
 static inline Tag jsonKeyLen(const char* key, uint32_t len)
 {
-    Tag tag;
-    memset(tag.data, 0, sizeof(tag.data));
+    Tag tag = {};
     memcpy(tag.data, key, len);
     return tag;
 }
@@ -71,11 +70,11 @@ typedef union
 }
 JsonObject;
 
-JsonType jsonObjectGetKey(JsonObject* object, const char* key, void* outVal);
-static inline uint32_t jsonObjectSize(JsonObject* object) {return object->object.size;}
-JsonType jsonArrayGetIndex(JsonObject* object, uint32_t index, void* outVal);
-static inline uint32_t jsonArraySize(JsonObject* object) {return object->array.size;}
-static inline uint32_t jsonStringLen(JsonObject* object) {return stringLength(&object->string);}
+JsonType jsonObjectGetKey(const JsonObject* object, const char* key, void* outVal);
+static inline uint32_t jsonObjectSize(const JsonObject* object) {return object->object.size;}
+JsonType jsonArrayGetIndex(const JsonObject* object, uint32_t index, void* outVal);
+static inline uint32_t jsonArraySize(const JsonObject* object) {return object->array.size;}
+static inline uint32_t jsonStringLen(const JsonObject* object) {return stringLength(&object->string);}
 
 VECTOR_DECL(JsonObject);
 
@@ -90,13 +89,16 @@ void jsonDataCreate(JsonData* data);
 int32_t jsonDataParse(JsonData* data, const char* str, uint32_t len);
 void jsonDataDestroy(JsonData* data);
 static inline JsonObject* jsonDataGetChild(JsonData* data, uint32_t index){return &data->children.data[index];}
+static inline const JsonObject* jsonDataGetChildConst(const JsonData* data, uint32_t index){return &data->children.data[index];}
 
 void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value);
+void jsonDataAddTag(JsonData* data, uint32_t parent, Tag name, Tag value);
 uint32_t jsonDataAddObject(JsonData* data, uint32_t parent, Tag name);
 uint32_t jsonDataAddArray(JsonData* data, uint32_t parent, Tag name);
 
 
 void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value);
+void jsonDataArrayAddTag(JsonData* data, uint32_t parent, Tag name, Tag value);
 uint32_t jsonDataArrayAddObject(JsonData* data, uint32_t parent);
 uint32_t jsonDataArrayAddArray(JsonData* data, uint32_t parent);
 

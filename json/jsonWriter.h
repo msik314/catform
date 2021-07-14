@@ -12,9 +12,9 @@ extern "C"
 #include <stdbool.h>
 #endif //__cplusplus
 
-int32_t jsonWrites(JsonData* data, const char* str, int32_t len);
+int32_t jsonWrites(const JsonData* data, const char* str, int32_t len);
 
-void jsonWritef(JsonData* data, const char* fileName);
+void jsonWritef(const JsonData* data, const char* fileName);
 
 #ifdef __cplusplus
 };

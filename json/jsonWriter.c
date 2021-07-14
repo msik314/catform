@@ -10,8 +10,11 @@
 #include "containers/hashmap.h"
 #include "json/jsonData.h"
 
-static int32_t writeArrayString(JsonData* data, JsonObject* object, char* output, int32_t bufferSize);
-static int32_t writeObjectString(JsonData* data, JsonObject* object, char* output, int32_t bufferSize);
+static int32_t writeArrayString(const JsonData* data, const JsonObject* object, char* output, int32_t bufferSize);
+static int32_t writeObjectString(const JsonData* data, const JsonObject* object, char* output, int32_t bufferSize);
+
+static void writeArrayFile(const JsonData* data, const JsonObject* object, FILE* output);
+static void writeObjectFile(const JsonData* data, const JsonObject* object, FILE* output);
 
 static inline int32_t snputc(char c, char* str, int32_t len)
 {
@@ -21,7 +24,7 @@ static inline int32_t snputc(char c, char* str, int32_t len)
     return 1;
 }
 
-int32_t jsonWrites(JsonData* data, const char* str, int32_t len)
+int32_t jsonWrites(const JsonData* data, const char* str, int32_t len)
 {
     int32_t written = writeObjectString(data, &data->root, (char*)str, len);
     written += snputc('\0', (char*)str + written, len - written);
@@ -29,10 +32,7 @@ int32_t jsonWrites(JsonData* data, const char* str, int32_t len)
     return written;
 }
 
-static void writeArrayFile(JsonData* data, JsonObject* object, FILE* output);
-static void writeObjectFile(JsonData* data, JsonObject* object, FILE* output);
-
-void jsonWritef(JsonData* data, const char* fileName)
+void jsonWritef(const JsonData* data, const char* fileName)
 {
     FILE* file = fopen(fileName, "w");
     
@@ -41,9 +41,9 @@ void jsonWritef(JsonData* data, const char* fileName)
     fclose(file);
 }
 
-static int32_t writeArrayString(JsonData* data, JsonObject* object, char* output, int32_t bufferSize)
+static int32_t writeArrayString(const JsonData* data, const JsonObject* object, char* output, int32_t bufferSize)
 {
-    JsonObject* child = NULL;
+    const JsonObject* child = NULL;
     JsonValue value;
     int32_t remaining = bufferSize;
     int32_t res = 0;
@@ -67,14 +67,14 @@ static int32_t writeArrayString(JsonData* data, JsonObject* object, char* output
         switch(value.type)
         {
         case JSON_TYPE_OBJECT:
-            child = jsonDataGetChild(data, value.objectIndex);
+            child = jsonDataGetChildConst(data, value.objectIndex);
             res = writeObjectString(data, child, output, remaining);
             remaining -= res;
             output += res;
             break;
             
         case JSON_TYPE_ARRAY:
-            child = jsonDataGetChild(data, value.objectIndex);
+            child = jsonDataGetChildConst(data, value.objectIndex);
             res = writeArrayString(data, child, output, remaining);
             remaining -= res;
             output += res;
@@ -122,10 +122,10 @@ static int32_t writeArrayString(JsonData* data, JsonObject* object, char* output
     return bufferSize - remaining;
 }
 
-static int32_t writeObjectString(JsonData* data, JsonObject* object, char* output, int32_t bufferSize)
+static int32_t writeObjectString(const JsonData* data, const JsonObject* object, char* output, int32_t bufferSize)
 {
     HashmapIterator(Tag, JsonValue) itr = hashmapBegin(Tag, JsonValue)(&object->object);
-    JsonObject* child = NULL;
+    const JsonObject* child = NULL;
     JsonValue value;
     int32_t remaining = bufferSize;
     int32_t res = 0;
@@ -159,7 +159,7 @@ static int32_t writeObjectString(JsonData* data, JsonObject* object, char* outpu
             res = stbsp_snprintf(output, MAX(remaining, 0), "\"%s\":", tag);
             remaining -= res;
             output += res;
-            child = jsonDataGetChild(data, value.objectIndex);
+            child = jsonDataGetChildConst(data, value.objectIndex);
             res = writeObjectString(data, child, output, remaining);
             remaining -= res;
             output += res;
@@ -169,7 +169,7 @@ static int32_t writeObjectString(JsonData* data, JsonObject* object, char* outpu
             res = stbsp_snprintf(output, MAX(remaining, 0), "\"%s\":", tag);
             remaining -= res;
             output += res;
-            child = jsonDataGetChild(data, value.objectIndex);
+            child = jsonDataGetChildConst(data, value.objectIndex);
             res = writeArrayString(data, child, output, remaining);
             remaining -= res;
             output += res;
@@ -219,9 +219,9 @@ static int32_t writeObjectString(JsonData* data, JsonObject* object, char* outpu
     return bufferSize - remaining;
 }
 
-static void writeArrayFile(JsonData* data, JsonObject* object, FILE* output)
+static void writeArrayFile(const JsonData* data, const JsonObject* object, FILE* output)
 {
-    JsonObject* child = NULL;
+    const JsonObject* child = NULL;
     JsonValue value;
     fputc('[', output);
     
@@ -233,12 +233,12 @@ static void writeArrayFile(JsonData* data, JsonObject* object, FILE* output)
         switch(value.type)
         {
         case JSON_TYPE_OBJECT:
-            child = jsonDataGetChild(data, value.objectIndex);
+            child = jsonDataGetChildConst(data, value.objectIndex);
             writeObjectFile(data, child, output);
             break;
             
         case JSON_TYPE_ARRAY:
-            child = jsonDataGetChild(data, value.objectIndex);
+            child = jsonDataGetChildConst(data, value.objectIndex);
             writeArrayFile(data, child, output);
             break;
             
@@ -266,10 +266,10 @@ static void writeArrayFile(JsonData* data, JsonObject* object, FILE* output)
     fputc(']', output);
 }
 
-static void writeObjectFile(JsonData* data, JsonObject* object, FILE* output)
+static void writeObjectFile(const JsonData* data, const JsonObject* object, FILE* output)
 {
     HashmapIterator(Tag, JsonValue) itr = hashmapBegin(Tag, JsonValue)(&object->object);
-    JsonObject* child = NULL;
+    const JsonObject* child = NULL;
     JsonValue value;
     char tag[sizeof(Tag) + 1] = {};
     
@@ -291,13 +291,13 @@ static void writeObjectFile(JsonData* data, JsonObject* object, FILE* output)
         {
         case JSON_TYPE_OBJECT:
             fprintf(output, "\"%s\":", tag);
-            child = jsonDataGetChild(data, value.objectIndex);
+            child = jsonDataGetChildConst(data, value.objectIndex);
             writeObjectFile(data, child, output);
             break;
             
         case JSON_TYPE_ARRAY:
             fprintf(output, "\"%s\":", tag);
-            child = jsonDataGetChild(data, value.objectIndex);
+            child = jsonDataGetChildConst(data, value.objectIndex);
             writeArrayFile(data, child, output);
             break;
             

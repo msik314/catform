@@ -211,7 +211,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     }
 }
 
-bool sceneManagerLoadScene(SceneManager* sceneManager, ECTable* table)
+bool sceneManagerSwitchScene(SceneManager* sceneManager, ECTable* table)
 {
     ECTable* expected = NULL;
     ECTable* newTable = (ECTable*)1;
@@ -229,6 +229,29 @@ bool sceneManagerLoadScene(SceneManager* sceneManager, ECTable* table)
     atomicStorePtr(&sceneManager->loadingScene, newTable);
     
     return true;
+}
+
+bool sceneManagerLoadScene(SceneManager* sceneManager, const JsonData* scene)
+{
+    ECTable* table;
+    uint32_t colSys;
+    uint32_t tableIdx;
+    
+    table = (ECTable*)CAT_MALLOC(sizeof(ECTable));
+    memset(table, 0, sizeof(ECTable));
+    ecTableCreate(table, NUM_COMPONENT_TYPES);
+    
+    for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
+    {
+        colSys = sceneManager->columnSystems[i];
+        sceneManager->systems.data[colSys].colCreate(&table->columns[i]);
+    }
+    
+    jsonObjectGetKey(&scene->root, "table", &tableIdx);
+    ecTableDeserialize(table, scene, tableIdx);
+    ecTableAddRemove(table);
+    
+    return sceneManagerSwitchScene(sceneManager, table);
 }
 
 static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* systems, SysFlags* sysFlags, uint32_t numSystems, float deltaTime)

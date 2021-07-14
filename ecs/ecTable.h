@@ -56,6 +56,8 @@ while(0)
 void ecTableSerialize(const ECTable* table, JsonData* data, uint32_t parentObject);
 void ecTableDeserialize(ECTable* table, const JsonData* data, uint32_t parentObject);
 
+#define ecTableAddPrefab(table, data, prefab) ecTableDeserialize(table, data, prefab)
+
 #ifdef __cplusplus
 };
 #endif //__cplusplus

@@ -7,6 +7,7 @@
 #include "ecs/scheduler.h"
 #include "containers/vector.h"
 #include "util/sync.h"
+#include "json/jsonData.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -43,7 +44,8 @@ void sceneManagerRegisterSystem(SceneManager* sceneManager, const ECSystem* syst
 void sceneManagerRegisterColumnSys(SceneManager* sceneManager, const ECSystem* system, uint32_t column);
 void sceneManagerInit(SceneManager* sceneManager);
 
-bool sceneManagerLoadScene(SceneManager* sceneManager, ECTable* table);
+bool sceneManagerSwitchScene(SceneManager* sceneManager, ECTable* table);
+bool sceneManagerLoadScene(SceneManager* sceneManager, const JsonData* scene);
 void sceneManagerFrame(SceneManager* sceneManager, float deltaTime, bool lastFrame);
 
 void sceneManagerFollowFrame(SceneManager* sceneManager, float deltaTime);

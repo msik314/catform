@@ -139,15 +139,9 @@ void testSceneMan(int32_t numThreads)
 {
     uint8_t buffer[1024];
     pthread_t helpers[numThreads - 1];
+    JsonData scene;
     
     SceneManager* sceneMan = sceneManagerGetInstance();
-    
-    ECTable* table;
-    Entity e = {};
-    Entity c = {};
-    TestComp t = {};
-    ObjectID eid;
-    ObjectID cid;
     
     volatile uint32_t running;
     atomicStore32(&running, 1);
@@ -156,22 +150,15 @@ void testSceneMan(int32_t numThreads)
     
     linInit(buffer, 1024);
     
-    e.transform = TRANSFORM_IDENTITY;
-    e.self.parent = INVALID_OBJECT;
-    tagSet(&e.name, "Parent");
-    
-    c.transform = TRANSFORM_IDENTITY;
-    tagSet(&c.name, "Child");
     
     sceneManagerCreate(sceneMan, numThreads, numThreads);
     sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity));
     sceneManagerRegisterColumnSys(sceneMan, &TEST_COMP_SYSTEM, COMPONENT(TestComp));
     sceneManagerInit(sceneMan);
     
-    table = sceneManagerGetTable(sceneMan);
-    ecTableAdd(table, Entity, &e, INVALID_OBJECT, &eid);
-    ecTableAdd(table, Entity, &c, eid, &cid);
-    ecTableAdd(table, TestComp, &t, eid, &cid);
+    jsonLoadf(&scene, "res/testScn.cat");
+    sceneManagerLoadScene(sceneMan, &scene);
+    jsonDataDestroy(&scene);
     
     for(int32_t i = 0; i < numThreads - 1; ++i)
     {
@@ -498,16 +485,7 @@ int32_t main(int argc, char** argv)
 #endif //_WIN32
     }
     
-    testECT();
-    puts("");
-    
     testLinalloc();
-    puts("");
-    
-    testSceneMan(2);
-    puts("");
-    
-    testSchedulerMulti();
     puts("");
     
     testJSONRead();
@@ -517,6 +495,16 @@ int32_t main(int argc, char** argv)
     puts("");
     
     testSceneSerialize();
+    puts("");
+    
+    testECT();
+    puts("");
+    
+    testSchedulerMulti();
+    puts("");
+    
+    testSceneMan(2);
+    
     
     return 0;
 }

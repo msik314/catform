@@ -37,6 +37,8 @@ void ecTableDestroy(ECTable* table)
     {
         ectColumnDestroyGeneric(&table->columns[i]);
     }
+    
+    CAT_FREE(table->columns);
 }
 
 void ecTableMark(ECTable* table)

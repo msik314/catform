@@ -291,7 +291,6 @@ int32_t jsonDataParse(JsonData* data, const char* str, uint32_t len)
     jsmn_init(&jsmnp);
     numTokens = jsmn_parse(&jsmnp, str, len, tokens, numTokens);
     
-    hashmapCreate(Tag, JsonValue)(&data->root.object);
     ++tokenIdx;
     
     while(tokenIdx < numTokens && tokens[tokenIdx].parent == 0)

@@ -9,6 +9,7 @@
 #include <unistd.h>
 #endif //_WIN32
 
+#include "util/globalDefs.h"
 #include "core/tag.h"
 #include "components/entity.h"
 #include "components/testComp.h"
@@ -25,6 +26,7 @@
 #include "json/jsonData.h"
 #include "json/jsonReader.h"
 #include "json/jsonWriter.h"
+#include "rpmalloc/rpmalloc.h"
 
 void printColumn(ECTColumn(Entity)* column)
 {
@@ -125,13 +127,17 @@ int32_t testLinalloc()
 
 void* sceneMulti(void* running)
 {
-    SceneManager* sceneMan = sceneManagerGetInstance();
+    SceneManager* sceneMan;
+    rpmalloc_thread_initialize();
+    
+    sceneMan = sceneManagerGetInstance();
     
     while(atomicLoad32((volatile uint32_t*)running))
     {
         sceneManagerFollowFrame(sceneMan, 0.0f);
     }
     
+    rpmalloc_thread_finalize();
     return NULL;
 }
 
@@ -199,6 +205,7 @@ void* schedMultiTest(void* a)
     TestArgs* args = (TestArgs*)a;
     Job j;
     uint64_t idx = 0;
+    rpmalloc_thread_initialize();
     
     while(atomicLoad32(args->running))
     {
@@ -213,6 +220,7 @@ void* schedMultiTest(void* a)
         barrierWait(args->barrier2);
     }
     
+    rpmalloc_thread_finalize();
     return NULL;
 }
 
@@ -485,6 +493,8 @@ int32_t main(int argc, char** argv)
 #endif //_WIN32
     }
     
+    rpmalloc_initialize();
+    
     testLinalloc();
     puts("");
     
@@ -505,6 +515,8 @@ int32_t main(int argc, char** argv)
     
     testSceneMan(2);
     
+    CHECK_LEAKS();
+    rpmalloc_finalize();
     
     return 0;
 }

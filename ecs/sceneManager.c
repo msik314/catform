@@ -233,25 +233,29 @@ bool sceneManagerSwitchScene(SceneManager* sceneManager, ECTable* table)
 
 bool sceneManagerLoadScene(SceneManager* sceneManager, const JsonData* scene)
 {
-    ECTable* table;
+    ECTable table = {};
     uint32_t colSys;
     uint32_t tableIdx;
     
-    table = (ECTable*)CAT_MALLOC(sizeof(ECTable));
-    memset(table, 0, sizeof(ECTable));
-    ecTableCreate(table, NUM_COMPONENT_TYPES);
+    ecTableCreate(&table, NUM_COMPONENT_TYPES);
     
     for(uint32_t i = 0; i < sceneManager->ecTable.numColumns; ++i)
     {
         colSys = sceneManager->columnSystems[i];
-        sceneManager->systems.data[colSys].colCreate(&table->columns[i]);
+        sceneManager->systems.data[colSys].colCreate(&table.columns[i]);
     }
     
     jsonObjectGetKey(&scene->root, "table", &tableIdx);
-    ecTableDeserialize(table, scene, tableIdx);
-    ecTableAddRemove(table);
+    ecTableDeserialize(&table, scene, tableIdx);
+    ecTableAddRemove(&table);
     
-    return sceneManagerSwitchScene(sceneManager, table);
+    if(!sceneManagerSwitchScene(sceneManager, &table))
+    {
+        ecTableDestroy(&table);
+        return false;
+    }
+    
+    return true;
 }
 
 static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* systems, SysFlags* sysFlags, uint32_t numSystems, float deltaTime)

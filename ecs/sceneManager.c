@@ -9,6 +9,7 @@
 #include "components/component.h"
 #include "util/atomics.h"
 #include "util/sync.h"
+#include "util/linalloc.h"
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -317,6 +318,7 @@ void sceneManagerFrame(SceneManager* sceneManager, float deltaTime, bool lastFra
 
     runSchedule(&sceneManager->scheduler, &sceneManager->ecTable, sceneManager->systems.data, sceneManager->sysFlags, sceneManager->systems.size, deltaTime);
     
+    linReset();
     if(!lastFrame)schedulerReset(&sceneManager->scheduler);
     
     newTable = (ECTable*)atomicStorePtr(&sceneManager->loadingScene, NULL);

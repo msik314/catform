@@ -257,7 +257,7 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
             jobArgDecode(job.args, &sysIdx, &colIdx);
             colDeps[0] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_COPY);
             colDeps[1] = MAKE_JOB_ID(colIdx, PHASE_COPY);
-            schedulerWaitDeps(scheduler, colDeps, 2);
+            schedulerWaitDeps(scheduler, colDeps, colIdx != COMPONENT(Entity) ? 2 : 1);
             job.function.parentFun(&table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
             break;
             
@@ -265,7 +265,7 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
             jobArgDecode(job.args, &sysIdx, &colIdx);
             colDeps[0] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_AR);
             colDeps[1] = MAKE_JOB_ID(colIdx, PHASE_AR);
-            schedulerWaitDeps(scheduler, colDeps, 2);
+            schedulerWaitDeps(scheduler, colDeps, colIdx != COMPONENT(Entity) ? 2 : 1);
             job.function.parentFun(&table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
             break;
         
@@ -273,7 +273,7 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
             jobArgDecode(job.args, &sysIdx, &colIdx);
             colDeps[0] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_DESTROY);
             colDeps[1] = MAKE_JOB_ID(colIdx, PHASE_DESTROY);
-            schedulerWaitDeps(scheduler, colDeps, 2);
+            schedulerWaitDeps(scheduler, colDeps, colIdx != COMPONENT(Entity) ? 2 : 1);
             job.function.addRemoveFun(&table->columns[colIdx], &table->pointerMap);
             break;
         

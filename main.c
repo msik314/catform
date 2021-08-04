@@ -157,7 +157,7 @@ void testSceneMan(int32_t numThreads)
     linInit(buffer, 1024);
     
     
-    sceneManagerCreate(sceneMan, numThreads, numThreads);
+    sceneManagerCreate(sceneMan, numThreads);
     sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity));
     sceneManagerRegisterColumnSys(sceneMan, &TEST_COMP_SYSTEM, COMPONENT(TestComp));
     sceneManagerInit(sceneMan);
@@ -174,7 +174,7 @@ void testSceneMan(int32_t numThreads)
     for(uint32_t i = 0; i < 32; ++i)
     {
         printf("Frame %u\n", i);
-        sceneManagerFrame(sceneMan, 0.0f, i == 32 - 1);
+        sceneManagerFrame(sceneMan, 0.0f);
     }
     
     atomicStore32(&running, 0);
@@ -245,7 +245,7 @@ void testSchedulerMulti()
     
     TestArgs args = {&sched, counters, &barrier1, &barrier2, &running};
     
-    schedulerCreate(&sched);
+    schedulerCreate(&sched, 16);
     
     barrierCreate(&barrier1, NUM_THREADS);
     barrierCreate(&barrier2, NUM_THREADS);
@@ -254,7 +254,7 @@ void testSchedulerMulti()
     jf.genericFun = NULL;
     for(uint64_t i = 0; i < 16; ++i)
     {
-        schedulerRegister(&sched, jf, JOB_TYPE(compReady), (void*)i);
+        schedulerRegister(&sched, jf, JOB_TYPE(compReady), (void*)i, i);
     }
     schedulerReset(&sched);
     

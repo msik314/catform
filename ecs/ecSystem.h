@@ -26,6 +26,13 @@ typedef void (*SysUpdateFun)(struct _ECSystem* self, SysFlags* flags, const ECTC
 typedef void (*SysCopyFun)(struct _ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime);
 typedef void (*SysComponentDestroyFun)(struct _ECSystem* self, ECTColumn* column);
 
+typedef struct
+{
+    uint32_t numDependencies;
+    uint32_t dependencies[];
+}
+JobDependency;
+
 typedef struct _ECSystem
 {
     SysInitFun sysInit;
@@ -34,9 +41,14 @@ typedef struct _ECSystem
     SysColCreateFun colCreate;
     
     SysReadyFun compReady;
+    const JobDependency* readyDeps;
+    
     SysUpdateFun sysUpdate;
     SysCopyFun compCopy;
+    const JobDependency* copyDeps;
+    
     SysComponentDestroyFun compDestroy;
+    const JobDependency* destroyDeps;
     
     SysReadyFun compReadyAll;
     SysComponentDestroyFun compDestroyAll;

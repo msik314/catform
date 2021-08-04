@@ -4,6 +4,7 @@
 #include "ecs/ectColumn.h"
 #include "ecs/ecSystem.h"
 #include "containers/vector.h"
+#include "systems/systems.h"
 #include "util/utilMacros.h"
 
 #ifdef __cplusplus
@@ -49,8 +50,9 @@ JobFun;
 typedef struct
 {
     JobFun function;
-    JobType jobType;
     void* args;
+    JobType jobType;
+    uint32_t id;
 }
 Job;
 VECTOR_DECL(Job);
@@ -67,16 +69,23 @@ typedef struct
 {
     Vector(Job) queue;
     volatile uint32_t nextJob;
+    
+    volatile uint32_t* jobCounters;
+    uint32_t numJobCounters;
+    volatile uint32_t frameCounter;
 }
 Scheduler;
 
-void schedulerCreate(Scheduler* scheduler);
+void schedulerCreate(Scheduler* scheduler, uint32_t numJobs);
 void schedulerDestroy(Scheduler* scheduler);
 
-void schedulerRegister(Scheduler* scheduler, JobFun function, JobType jobType, void* args);
+void schedulerRegister(Scheduler* scheduler, JobFun function, JobType jobType, void* args, uint32_t id);
 
 void schedulerReset(Scheduler* scheduler);
 bool schedulerGetNext(Scheduler* scheduler, Job* outJob);
+void schedulerFinish(Scheduler* scheduler, uint32_t jobId);
+
+void schedulerWaitDeps(Scheduler* scheduler, const uint32_t* ids, uint32_t numIDs);
 
 #ifdef __cplusplus
 };

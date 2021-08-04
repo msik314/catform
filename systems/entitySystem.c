@@ -9,9 +9,23 @@
 #include "ecs/sceneManager.h"
 #include "ecs/pointerMap.h"
 #include "ecs/object.h"
+#include "ecs/phase.h"
 #include "core/tag.h"
 #include "components/entity.h"
+#include "systems/systems.h"
 #include "util/atomics.h"
+
+const JobDependency ENTITY_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(Entity), PHASE_PARENT)}};
+const JobDependency ENTITY_COPY_DEPS =
+{
+    2, 
+    {
+        MAKE_JOB_ID(SYSTEM(Entity), PHASE_UPDATE),
+        MAKE_JOB_ID(SYSTEM(TestComp), PHASE_UPDATE)
+    }
+};
+
+const JobDependency ENTITY_DESTROY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(Entity), PHASE_MARK)}};
 
 static void entityColCreate(ECTColumn* column){ectColumnCreate(Entity)((ECTColumn(Entity)*)column);}
 
@@ -22,10 +36,10 @@ const ECSystem ENTITY_SYSTEM =
     
     entityColCreate,
     
-    entityCompReady,
+    entityCompReady, &ENTITY_READY_DEPS,
     entitySysUpdate,
-    entityCompCopy,
-    entitycompDestroy,
+    entityCompCopy, &ENTITY_COPY_DEPS,
+    entitycompDestroy, &ENTITY_DESTROY_DEPS,
     
     entityCompReadyAll,
     entityCompDestroyAll
@@ -76,7 +90,7 @@ void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
 {
     ECTColumn(Entity)* entities = (ECTColumn(Entity)*)column;
     bool entityVisited[entities->components.size];
-    uint32_t* testCompFlags = (uint32_t*)atomicLoadPtr(&flags[1]); //TestComp system
+    uint32_t* testCompFlags = (uint32_t*)atomicLoadPtr(&flags[SYSTEM(TestComp)]);
     const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
     Entity* entity;
     

@@ -5,6 +5,7 @@
 #include "ecs/ectColumn.h"
 #include "ecs/ecTable.h"
 #include "ecs/ecSystem.h"
+#include "ecs/phase.h"
 #include "containers/vector.h"
 #include "components/component.h"
 #include "util/atomics.h"
@@ -31,7 +32,7 @@ SceneManager* sceneManagerGetInstance()
     return &instance;
 }
 
-void sceneManagerCreate(SceneManager* sceneManager, uint32_t numSyncThreads, uint32_t numTotalThreads)
+void sceneManagerCreate(SceneManager* sceneManager, uint32_t numThreads)
 {
     ecTableCreate(&sceneManager->ecTable, NUM_COMPONENT_TYPES);
     sceneManager->sysFlags = NULL;
@@ -39,10 +40,7 @@ void sceneManagerCreate(SceneManager* sceneManager, uint32_t numSyncThreads, uin
     vectorCreate(ECSystem)(&sceneManager->systems);
     sceneManager->columnSystems = (uint32_t*)CAT_MALLOC(NUM_COMPONENT_TYPES * sizeof(uint32_t));
     
-    schedulerCreate(&sceneManager->scheduler);
-    
-    barrierCreate(&sceneManager->phaseBarrier, numSyncThreads);
-    barrierCreate(&sceneManager->frameBarrier, numTotalThreads);
+    barrierCreate(&sceneManager->frameBarrier, numThreads);
     
     atomicStorePtr(&sceneManager->loadingScene, NULL);
 }
@@ -61,12 +59,13 @@ void sceneManagerDestroy(SceneManager* sceneManager)
         APPLY(sceneManager->systems.data[i], sysDestroy);
     }
     
-    if(sceneManager->sysFlags) CAT_FREE((void*)sceneManager->sysFlags);
+    if(sceneManager->sysFlags)
+    {
+        CAT_FREE((void*)sceneManager->sysFlags);
+        schedulerDestroy(&sceneManager->scheduler);
+    }
     
     barrierDestroy(&sceneManager->frameBarrier);
-    barrierDestroy(&sceneManager->phaseBarrier);
-    
-    schedulerDestroy(&sceneManager->scheduler);
     
     CAT_FREE(sceneManager->columnSystems);
     vectorDestroy(ECSystem)(&sceneManager->systems);
@@ -101,6 +100,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     };
     
     sceneManager->sysFlags = (SysFlags*)CAT_MALLOC(sceneManager->systems.size * sizeof(SysFlags));
+    schedulerCreate(&sceneManager->scheduler, sceneManager->systems.size * NUM_PHASES);
     
     for(uint32_t i = 0; i < sceneManager->systems.size; ++i)
     {
@@ -108,23 +108,11 @@ void sceneManagerInit(SceneManager* sceneManager)
     }
     
     //Frame Start
-    job.genericFun = (JobGenericFun)barrierWait;
-    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->frameBarrier); ++i)
-    {
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->frameBarrier);
-    }
-    
     //Phase 1
     for(uint32_t i = 0; i < sceneManager->systems.size; ++i)
     {
         job.updateFun = sceneManager->systems.data[i].sysUpdate;
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sysUpdate), jobArgEncode(i, i));
-    }
-    
-    job.genericFun = (JobGenericFun)barrierWait;
-    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
-    {
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sysUpdate), jobArgEncode(i, i), MAKE_JOB_ID(i, 0));
     }
     
     //Phase 2
@@ -132,13 +120,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     {
         colSys = sceneManager->columnSystems[i];
         job.copyFun = sceneManager->systems.data[colSys].compCopy;
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compCopy), jobArgEncode(colSys, i));
-    }
-    
-    job.genericFun = (JobGenericFun)barrierWait;
-    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
-    {
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compCopy), jobArgEncode(colSys, i), MAKE_JOB_ID(colSys, 1));
     }
     
     //Phase 3
@@ -146,13 +128,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     for(uint32_t i = 0; i < numColumns; ++i)
     {
         job.parentFun = parentFuns[i];
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(colMark), jobArgEncode(0xffffffff, i));
-    }
-    
-    job.genericFun = (JobGenericFun)barrierWait;
-    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
-    {
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(colMark), jobArgEncode(0xffffffff, i), MAKE_JOB_ID(i, 2));
     }
     
     //Phase 4
@@ -160,13 +136,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     {
         colSys = sceneManager->columnSystems[i];
         job.destroyFun = sceneManager->systems.data[colSys].compDestroy;
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compDestroy), jobArgEncode(colSys, i));
-    }
-    
-    job.genericFun = (JobGenericFun)barrierWait;
-    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
-    {
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compDestroy), jobArgEncode(colSys, i), MAKE_JOB_ID(colSys, 3));
     }
     
     //Phase 5
@@ -174,13 +144,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     for(uint32_t i = 0; i < numColumns; ++i)
     {
         job.addRemoveFun = arFuns[i];
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(colAddRemove), jobArgEncode(0xffffffff, i));
-    }
-    
-    job.genericFun = (JobGenericFun)barrierWait;
-    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
-    {
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(colAddRemove), jobArgEncode(0xffffffff, i), MAKE_JOB_ID(i, 4));
     }
     
     //Phase 6
@@ -188,13 +152,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     for(uint32_t i = 0; i < numColumns; ++i)
     {
         job.parentFun = parentFuns[i];
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(colParent), jobArgEncode(0xffffffff, i));
-    }
-    
-    job.genericFun = (JobGenericFun)barrierWait;
-    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
-    {
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(colParent), jobArgEncode(0xffffffff, i), MAKE_JOB_ID(i, 5));
     }
     
     //Phase 7
@@ -202,13 +160,14 @@ void sceneManagerInit(SceneManager* sceneManager)
     {
         colSys = sceneManager->columnSystems[i];
         job.readyFun = sceneManager->systems.data[colSys].compReady;
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compReady), jobArgEncode(colSys, i));
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compReady), jobArgEncode(colSys, i), MAKE_JOB_ID(colSys, 6));
     }
     
+    //Frame Sync
     job.genericFun = (JobGenericFun)barrierWait;
-    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->phaseBarrier); ++i)
+    for(uint32_t i = 0; i < barrierGetMaxThreads(&sceneManager->frameBarrier); ++i)
     {
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->phaseBarrier);
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(sync), &sceneManager->frameBarrier, 0xffffffff);
     }
 }
 
@@ -265,12 +224,15 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
     uint32_t sysIdx;
     uint32_t colIdx;
     
+    uint32_t colDeps[2];
+    
     while(schedulerGetNext(scheduler, &job))
     {
         switch(job.jobType)
         {
         case JOB_TYPE(compReady):
             jobArgDecode(job.args, &sysIdx, &colIdx);
+            schedulerWaitDeps(scheduler, systems[sysIdx].readyDeps->dependencies, systems[sysIdx].readyDeps->numDependencies);            
             job.function.readyFun(&systems[sysIdx], &table->columns[colIdx]);
             break;
         
@@ -281,22 +243,37 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
         
         case JOB_TYPE(compCopy):
             jobArgDecode(job.args, &sysIdx, &colIdx);
+            schedulerWaitDeps(scheduler, systems[sysIdx].copyDeps->dependencies, systems[sysIdx].copyDeps->numDependencies);
             job.function.copyFun(&systems[sysIdx], &table->columns[colIdx], (const SysFlags*)sysFlags, numSystems, deltaTime);
             break;
         
         case JOB_TYPE(compDestroy):
             jobArgDecode(job.args, &sysIdx, &colIdx);
+            schedulerWaitDeps(scheduler, systems[sysIdx].destroyDeps->dependencies, systems[sysIdx].destroyDeps->numDependencies);
             job.function.destroyFun(&systems[sysIdx], &table->columns[colIdx]);
             break;
         
         case JOB_TYPE(colMark):
+            jobArgDecode(job.args, &sysIdx, &colIdx);
+            colDeps[0] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_COPY);
+            colDeps[1] = MAKE_JOB_ID(colIdx, PHASE_COPY);
+            schedulerWaitDeps(scheduler, colDeps, 2);
+            job.function.parentFun(&table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
+            break;
+            
         case JOB_TYPE(colParent):
             jobArgDecode(job.args, &sysIdx, &colIdx);
+            colDeps[0] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_AR);
+            colDeps[1] = MAKE_JOB_ID(colIdx, PHASE_AR);
+            schedulerWaitDeps(scheduler, colDeps, 2);
             job.function.parentFun(&table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
             break;
         
         case JOB_TYPE(colAddRemove):
             jobArgDecode(job.args, &sysIdx, &colIdx);
+            colDeps[0] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_DESTROY);
+            colDeps[1] = MAKE_JOB_ID(colIdx, PHASE_DESTROY);
+            schedulerWaitDeps(scheduler, colDeps, 2);
             job.function.addRemoveFun(&table->columns[colIdx], &table->pointerMap);
             break;
         
@@ -308,18 +285,20 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
             printWarn(CAT_WARNING_EC_SYSTEM, "invalid job type encountered. Skipping...");
             break;
         }
+        
+        schedulerFinish(scheduler, job.id);
     }
 }
 
-void sceneManagerFrame(SceneManager* sceneManager, float deltaTime, bool lastFrame)
+void sceneManagerFrame(SceneManager* sceneManager, float deltaTime)
 {
     ECTable* newTable;
     register uint32_t colSys;
-
+    
+    schedulerReset(&sceneManager->scheduler);
     runSchedule(&sceneManager->scheduler, &sceneManager->ecTable, sceneManager->systems.data, sceneManager->sysFlags, sceneManager->systems.size, deltaTime);
     
     linReset();
-    if(!lastFrame)schedulerReset(&sceneManager->scheduler);
     
     newTable = (ECTable*)atomicStorePtr(&sceneManager->loadingScene, NULL);
     if(newTable)

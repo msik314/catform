@@ -25,16 +25,15 @@ typedef struct
     uint32_t* columnSystems;
     
     Scheduler scheduler;
-    Barrier phaseBarrier;
     Barrier frameBarrier;
     
-    volatile ECTable* loadingScene;
+    ECTable volatile* loadingScene;
 }
 SceneManager;
 
 SceneManager* sceneManagerGetInstance();
 
-void sceneManagerCreate(SceneManager* sceneManager, uint32_t numSyncThreads, uint32_t numTotalThreads);
+void sceneManagerCreate(SceneManager* sceneManager, uint32_t numThreads);
 void sceneManagerDestroy(SceneManager* sceneManager);
 
 static inline const PointerMap* sceneManagerGetMap(SceneManager* sceneManager) {return &sceneManager->ecTable.pointerMap;}
@@ -46,7 +45,7 @@ void sceneManagerInit(SceneManager* sceneManager);
 
 bool sceneManagerSwitchScene(SceneManager* sceneManager, ECTable* table);
 bool sceneManagerLoadScene(SceneManager* sceneManager, const JsonData* scene);
-void sceneManagerFrame(SceneManager* sceneManager, float deltaTime, bool lastFrame);
+void sceneManagerFrame(SceneManager* sceneManager, float deltaTime);
 
 void sceneManagerFollowFrame(SceneManager* sceneManager, float deltaTime);
 

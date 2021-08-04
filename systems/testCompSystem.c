@@ -8,11 +8,17 @@
 #include "ecs/ectColumn.h"
 #include "ecs/object.h"
 #include "ecs/sceneManager.h"
+#include "ecs/phase.h"
 #include "components/component.h"
 #include "components/entity.h"
 #include "components/testComp.h"
+#include "systems/systems.h"
 #include "util/atomics.h"
 #include "util/linalloc.h"
+
+const JobDependency TEST_COMP_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(TestComp), PHASE_PARENT)}};
+const JobDependency TEST_COMP_COPY_DEPS = {1, {MAKE_JOB_ID(SYSTEM(TestComp), PHASE_UPDATE)}};
+const JobDependency TEST_COMP_DESTROY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(TestComp), PHASE_MARK)}};
 
 static void testCompColCreate(ECTColumn* column) {ectColumnCreate(TestComp)((ECTColumn(TestComp)*)column);}
 
@@ -23,10 +29,10 @@ const ECSystem TEST_COMP_SYSTEM =
     
     testCompColCreate,
     
-    testCompCompReady,
+    testCompCompReady, &TEST_COMP_READY_DEPS,
     testCompSysUpdate,
-    testCompCompCopy,
-    testCompCompDestroy,
+    testCompCompCopy, &TEST_COMP_COPY_DEPS,
+    testCompCompDestroy, &TEST_COMP_DESTROY_DEPS,
     
     testCompCompReadyAll,
     testCompCompDestroyAll

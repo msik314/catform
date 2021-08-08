@@ -11,7 +11,8 @@
 #include "ecs/ectVirtualTable.h"
 #include "util/atomics.h"
 
-#define ECTCOLUMN_IMPL_SER(TYPE,SERIALIZE,DESERIALIZE) \
+
+#define ECTCOLUMN_IMPL_FUNCTIONS(TYPE, ADD_REMOVE, REMOVE_ALL, PARENT_ADD, PARENT_DELETE, SERIALIZE, DESERIALIZE) \
 void ectColumnCreate(TYPE)(ECTColumn(TYPE)* ectColumn)\
 {\
     collectionCreate(TYPE)(&ectColumn->components);\
@@ -155,5 +156,8 @@ void ectColumnParentAdd(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, P
         entitySetHasComponent(parent, COMPONENT(TYPE));\
     }\
 }\
+
+#define ECTCOLUMN_IMPL_SER(TYPE, SERIALIZE, DESERIALIZE)\
+ECTCOLUMN_IMPL_FUNCTIONS(TYPE, ectColumnAddRemove, ectColumnRemoveAll, ectColumnParentAdd, ectColumnParentDelete, SERIALIZE, DESERIALIZE)
 
 #define ECTCOLUMN_IMPL(TYPE) ECTCOLUMN_IMPL_SER(TYPE, NULL, NULL)

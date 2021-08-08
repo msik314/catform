@@ -24,6 +24,8 @@ typedef struct
     Vector(ECSystem) systems;
     uint32_t* columnSystems;
     
+    Vector(uint32_t) entityMarkDeps;
+    
     Scheduler scheduler;
     Barrier frameBarrier;
     
@@ -40,7 +42,7 @@ static inline const PointerMap* sceneManagerGetMap(SceneManager* sceneManager) {
 static inline ECTable* sceneManagerGetTable(SceneManager* sceneManager) {return &sceneManager->ecTable;}
 
 void sceneManagerRegisterSystem(SceneManager* sceneManager, const ECSystem* system);
-void sceneManagerRegisterColumnSys(SceneManager* sceneManager, const ECSystem* system, uint32_t column);
+void sceneManagerRegisterColumnSys(SceneManager* sceneManager, const ECSystem* system, uint32_t column, bool writesFlags);
 void sceneManagerInit(SceneManager* sceneManager);
 
 bool sceneManagerSwitchScene(SceneManager* sceneManager, ECTable* table);

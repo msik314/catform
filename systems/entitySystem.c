@@ -71,41 +71,18 @@ void entityCompReady(ECSystem* self, ECTColumn* column)
 
 void entitySysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime){}
 
-static inline uint32_t markIfParentMarked(Entity* entities, bool* visited, uint32_t idx, const PointerMap* map)
-{
-    uint32_t parentIdx;
-    uint32_t flags;
-    
-    if(visited[idx]) return atomicLoad32(&entities[idx].self.flags) & OBJECT_FLAG_REMOVE;
-    visited[idx] = true;
-    
-    if(entities[idx].self.parent == INVALID_OBJECT) return atomicLoad32(&entities[idx].self.flags) & OBJECT_FLAG_REMOVE;
-    
-    parentIdx = pointerMapGet(map, entities[idx].self.parent);
-    flags = markIfParentMarked(entities, visited, parentIdx, map);
-    return (fetchOr32(&entities[idx].self.flags, flags) | flags) & OBJECT_FLAG_REMOVE; 
-}
+
 
 void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime)
 {
     ECTColumn(Entity)* entities = (ECTColumn(Entity)*)column;
-    bool entityVisited[entities->components.size];
     uint32_t* testCompFlags = (uint32_t*)atomicLoadPtr(&flags[SYSTEM(TestComp)]);
-    const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
     Entity* entity;
-    
     
     for(uint32_t i = 0; i < testCompFlags[0]; ++i)
     {
         entity = &entities->components.data[testCompFlags[2 * i + 2]];
         fetchOr32(&entity->self.flags, (testCompFlags[2 * i + 1] >= 16) * OBJECT_FLAG_REMOVE);
-    }
-    
-    memset(entityVisited, 0, entities->components.size * sizeof(bool));
-    
-    for(uint32_t i = 0; i < entities->components.size; ++i)
-    {
-        markIfParentMarked(entities->components.data, entityVisited, i, map);
     }
 }
 

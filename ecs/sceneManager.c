@@ -40,6 +40,8 @@ void sceneManagerCreate(SceneManager* sceneManager, uint32_t numThreads)
     vectorCreate(ECSystem)(&sceneManager->systems);
     sceneManager->columnSystems = (uint32_t*)CAT_MALLOC(NUM_COMPONENT_TYPES * sizeof(uint32_t));
     
+    vectorCreate(uint32_t)(&sceneManager->entityMarkDeps);
+    
     barrierCreate(&sceneManager->frameBarrier, numThreads);
     
     atomicStorePtr(&sceneManager->loadingScene, NULL);
@@ -67,6 +69,8 @@ void sceneManagerDestroy(SceneManager* sceneManager)
     
     barrierDestroy(&sceneManager->frameBarrier);
     
+    vectorDestroy(uint32_t)(&sceneManager->entityMarkDeps);
+    
     CAT_FREE(sceneManager->columnSystems);
     vectorDestroy(ECSystem)(&sceneManager->systems);
     
@@ -78,8 +82,16 @@ void sceneManagerRegisterSystem(SceneManager* sceneManager, const ECSystem* syst
     vectorAdd(ECSystem)(&sceneManager->systems, system);
 }
 
-void sceneManagerRegisterColumnSys(SceneManager* sceneManager, const ECSystem* system, uint32_t column)
+void sceneManagerRegisterColumnSys(SceneManager* sceneManager, const ECSystem* system, uint32_t column, bool writesFlags)
 {
+    uint32_t id;
+    
+    if(writesFlags)
+    {
+        id = MAKE_JOB_ID(sceneManager->systems.size, PHASE_COPY);
+        vectorAdd(uint32_t)(&sceneManager->entityMarkDeps, &id);
+    }
+    
     sceneManager->columnSystems[column] = sceneManager->systems.size;
     vectorAdd(ECSystem)(&sceneManager->systems, system);
 }
@@ -218,7 +230,7 @@ bool sceneManagerLoadScene(SceneManager* sceneManager, const JsonData* scene)
     return true;
 }
 
-static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* systems, SysFlags* sysFlags, uint32_t numSystems, float deltaTime)
+static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* systems, SysFlags* sysFlags, uint32_t numSystems, uint32_t* entityDeps, uint32_t numEntityDeps, float deltaTime)
 {
     Job job;
     uint32_t sysIdx;
@@ -255,9 +267,18 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
         
         case JOB_TYPE(colMark):
             jobArgDecode(job.args, &sysIdx, &colIdx);
-            colDeps[0] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_COPY);
-            colDeps[1] = MAKE_JOB_ID(colIdx, PHASE_COPY);
-            schedulerWaitDeps(scheduler, colDeps, colIdx != COMPONENT(Entity) ? 2 : 1);
+            
+            if(colIdx == COMPONENT(Entity))
+            {
+                schedulerWaitDeps(scheduler, entityDeps, numEntityDeps);
+            }
+            else
+            {
+                colDeps[0] = MAKE_JOB_ID(colIdx, PHASE_COPY);
+                colDeps[1] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_MARK);
+                schedulerWaitDeps(scheduler, colDeps, 2);
+            }
+            
             job.function.parentFun(&table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
             break;
             
@@ -296,7 +317,17 @@ void sceneManagerFrame(SceneManager* sceneManager, float deltaTime)
     register uint32_t colSys;
     
     schedulerReset(&sceneManager->scheduler);
-    runSchedule(&sceneManager->scheduler, &sceneManager->ecTable, sceneManager->systems.data, sceneManager->sysFlags, sceneManager->systems.size, deltaTime);
+    runSchedule
+    (
+        &sceneManager->scheduler,
+        &sceneManager->ecTable,
+        sceneManager->systems.data,
+        sceneManager->sysFlags,
+        sceneManager->systems.size,
+        sceneManager->entityMarkDeps.data,
+        sceneManager->entityMarkDeps.size,
+        deltaTime
+    );
     
     linReset();
     
@@ -329,5 +360,15 @@ void sceneManagerFrame(SceneManager* sceneManager, float deltaTime)
 
 void sceneManagerFollowFrame(SceneManager* sceneManager, float deltaTime)
 {
-    runSchedule(&sceneManager->scheduler, &sceneManager->ecTable, sceneManager->systems.data, sceneManager->sysFlags, sceneManager->systems.size, deltaTime);
+    runSchedule
+    (
+        &sceneManager->scheduler,
+        &sceneManager->ecTable,
+        sceneManager->systems.data,
+        sceneManager->sysFlags,
+        sceneManager->systems.size,
+        sceneManager->entityMarkDeps.data,
+        sceneManager->entityMarkDeps.size,
+        deltaTime
+    );
 }

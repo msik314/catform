@@ -158,8 +158,8 @@ void testSceneMan(int32_t numThreads)
     
     
     sceneManagerCreate(sceneMan, numThreads);
-    sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity));
-    sceneManagerRegisterColumnSys(sceneMan, &TEST_COMP_SYSTEM, COMPONENT(TestComp));
+    sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity), true);
+    sceneManagerRegisterColumnSys(sceneMan, &TEST_COMP_SYSTEM, COMPONENT(TestComp), false);
     sceneManagerInit(sceneMan);
     
     jsonLoadf(&scene, "res/testScn.cat");

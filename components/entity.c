@@ -4,6 +4,7 @@
 #include <string.h>
 #include "ecs/ectColumn.h"
 #include "ecs/ectColumn.inl"
+#include "ecs/pointerMap.h"
 #include "json/jsonData.h"
 #include "json/jsonTypes.h"
 #include "core/tag.h"
@@ -106,6 +107,38 @@ void deserializeEntities(ECTColumn* colGen, const JsonData* data, uint32_t colum
         ectColumnAdd(Entity)(entities, &e);
     }
     
+}
+
+static inline uint32_t markIfParentMarked(Entity* entities, bool* visited, uint32_t idx, const PointerMap* map)
+{
+    uint32_t parentIdx;
+    uint32_t flags;
+    
+    if(visited[idx]) return atomicLoad32(&entities[idx].self.flags) & OBJECT_FLAG_REMOVE;
+    visited[idx] = true;
+    
+    if(entities[idx].self.parent == INVALID_OBJECT) return atomicLoad32(&entities[idx].self.flags) & OBJECT_FLAG_REMOVE;
+    
+    parentIdx = pointerMapGet(map, entities[idx].self.parent);
+    flags = markIfParentMarked(entities, visited, parentIdx, map);
+    return (fetchOr32(&entities[idx].self.flags, flags) | flags) & OBJECT_FLAG_REMOVE; 
+}
+
+void entityMark(ECTColumn* column, ECTColumn* _, PointerMap* map)
+{
+    ECTColumn(Entity)* entities = (ECTColumn(Entity)*)column;
+    bool entityVisited[entities->components.size];
+    Entity* entity;
+    
+    memset(entityVisited, 0, entities->components.size * sizeof(bool));
+    
+    for(uint32_t i = 0; i < entities->components.size; ++i)
+    {
+        if(markIfParentMarked(entities->components.data, entityVisited, i, map))
+        {
+            entityResetHasComponent(&entities->components.data[i], COMPONENT(Entity));
+        }
+    }
 }
 
 ECTCOLUMN_IMPL_SER(Entity, serializeEntities, deserializeEntities)

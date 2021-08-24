@@ -15,7 +15,7 @@
 void schedulerCreate(Scheduler* scheduler, uint32_t numJobs)
 {
     vectorCreate(Job)(&scheduler->queue);
-    atomicStore32(&scheduler->nextJob, 0);
+    atomicStore32(&scheduler->nextJob, 0x80000000); //Very big number
     
     scheduler->jobCounters = CAT_MALLOC(numJobs * sizeof(uint32_t));
     for(uint32_t i = 0; i < numJobs; ++i)
@@ -24,7 +24,7 @@ void schedulerCreate(Scheduler* scheduler, uint32_t numJobs)
     }
     
     scheduler->numJobCounters = numJobs;
-    atomicStore32(&scheduler->frameCounter, 0); //Rolls over to 0 on first reset
+    atomicStore32(&scheduler->frameCounter, 0);
 }
 
 void schedulerDestroy(Scheduler* scheduler)

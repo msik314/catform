@@ -19,10 +19,10 @@ void ectColumnCreate(TYPE)(ECTColumn(TYPE)* ectColumn)\
     mwQueueCreate(TYPE)(&ectColumn->addQueue);\
     if(!getVirtualAddRemove(COMPONENT(TYPE)))\
     {\
-        setVirtualAddRemove(COMPONENT(TYPE), ectColumnAddRemove(TYPE));\
-        setVirtualRemoveAll(COMPONENT(TYPE), ectColumnRemoveAll(TYPE));\
-        setVirtualParentDelete(COMPONENT(TYPE), ectColumnParentDelete(TYPE));\
-        setVirtualParentAdd(COMPONENT(TYPE), ectColumnParentAdd(TYPE));\
+        setVirtualAddRemove(COMPONENT(TYPE), ADD_REMOVE);\
+        setVirtualRemoveAll(COMPONENT(TYPE), REMOVE_ALL);\
+        setVirtualParentDelete(COMPONENT(TYPE), PARENT_DELETE);\
+        setVirtualParentAdd(COMPONENT(TYPE), PARENT_ADD);\
         setVirtualSerialize(COMPONENT(TYPE), SERIALIZE);\
         setVirtualDeserialize(COMPONENT(TYPE), DESERIALIZE);\
     }\
@@ -158,6 +158,6 @@ void ectColumnParentAdd(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, P
 }\
 
 #define ECTCOLUMN_IMPL_SER(TYPE, SERIALIZE, DESERIALIZE)\
-ECTCOLUMN_IMPL_FUNCTIONS(TYPE, ectColumnAddRemove, ectColumnRemoveAll, ectColumnParentAdd, ectColumnParentDelete, SERIALIZE, DESERIALIZE)
+ECTCOLUMN_IMPL_FUNCTIONS(TYPE, ectColumnAddRemove(TYPE), ectColumnRemoveAll(TYPE), ectColumnParentAdd(TYPE), ectColumnParentDelete(TYPE), SERIALIZE, DESERIALIZE)
 
 #define ECTCOLUMN_IMPL(TYPE) ECTCOLUMN_IMPL_SER(TYPE, NULL, NULL)

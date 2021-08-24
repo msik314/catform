@@ -141,4 +141,4 @@ void entityMark(ECTColumn* column, ECTColumn* _, PointerMap* map)
     }
 }
 
-ECTCOLUMN_IMPL_SER(Entity, serializeEntities, deserializeEntities)
+ECTCOLUMN_IMPL_FUNCTIONS(Entity, ectColumnAddRemove(Entity), ectColumnRemoveAll(Entity), ectColumnParentAdd(Entity), entityMark, serializeEntities, deserializeEntities)

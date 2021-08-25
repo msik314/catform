@@ -328,7 +328,7 @@ void jsonDataDestroy(JsonData* data)
 }
 
 
-void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value)
+void jsonDataAddValuePtr(JsonData* data, uint32_t parent, Tag name, JsonValue* value)
 {
     JsonObject* parentPtr;
     JsonObject* stringVal;
@@ -336,7 +336,7 @@ void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value
     
     JsonObject obj = {};
     
-    switch(value.type)
+    switch(value->type)
     {
     case JSON_TYPE_ARRAY:
     case JSON_TYPE_OBJECT:
@@ -351,7 +351,7 @@ void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value
         vectorAdd(JsonObject)(&data->children, &obj);
         stringVal = jsonDataGetChild(data, data->children.size - 1);
         stringCreate(&stringVal->string);
-        cStrToString(&stringVal->string, value.stringValue);
+        cStrToString(&stringVal->string, value->stringValue);
         
         val.stringValue = stringVal->string.data;
         val.type = JSON_TYPE_STRING;
@@ -361,8 +361,40 @@ void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value
     
     default:
         parentPtr = parent != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parent) : &data->root;
-        hashmapSet(Tag, JsonValue)(&parentPtr->object, &name, &value);
+        hashmapSet(Tag, JsonValue)(&parentPtr->object, &name, value);
     }
+}
+
+void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value) {jsonDataAddValuePtr(data, parent, name, &value);}
+
+void jsonDataAddBool(JsonData* data, uint32_t parent, Tag name, bool value)
+{
+    JsonValue val = {value, JSON_TYPE_BOOL};
+    jsonDataAddValuePtr(data, parent, name, &val);
+}
+
+void jsonDataAddInt(JsonData* data, uint32_t parent, Tag name, int32_t value)
+{
+    JsonValue val = {value, JSON_TYPE_INT};
+    jsonDataAddValuePtr(data, parent, name, &val);
+}
+
+void jsonDataAddReal(JsonData* data, uint32_t parent, Tag name, double value)
+{
+    JsonValue val = {value, JSON_TYPE_REAL};
+    jsonDataAddValuePtr(data, parent, name, &val);
+}
+
+void jsonDataAddString(JsonData* data, uint32_t parent, Tag name, const char* value)
+{
+    JsonValue val = {value, JSON_TYPE_STRING};
+    jsonDataAddValuePtr(data, parent, name, &val);
+}
+
+void jsonDataAddNull(JsonData* data, uint32_t parent, Tag name)
+{
+    JsonValue val = {0, JSON_TYPE_NULL};
+    jsonDataAddValuePtr(data, parent, name, &val);
 }
 
 void jsonDataAddTag(JsonData* data, uint32_t parent, Tag name, Tag value)
@@ -423,7 +455,7 @@ uint32_t jsonDataAddArray(JsonData* data, uint32_t parent, Tag name)
     return idx;
 }
 
-void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value)
+static void jsonDataArrayAddValuePtr(JsonData* data, uint32_t parentArray, JsonValue* value)
 {
     JsonObject* parentPtr;
     JsonObject* stringVal;
@@ -431,7 +463,7 @@ void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value
     
     JsonObject obj = {};
     
-    switch(value.type)
+    switch(value->type)
     {
     case JSON_TYPE_ARRAY:
     case JSON_TYPE_OBJECT:
@@ -446,7 +478,7 @@ void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value
         vectorAdd(JsonObject)(&data->children, &obj);
         stringVal = jsonDataGetChild(data, data->children.size - 1);
         stringCreate(&stringVal->string);
-        cStrToString(&stringVal->string, value.stringValue);
+        cStrToString(&stringVal->string, value->stringValue);
         
         val.stringValue = stringVal->string.data;
         val.type = JSON_TYPE_STRING;
@@ -456,11 +488,43 @@ void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value
     
     default:
         parentPtr = parentArray != JSON_DATA_ROOT_INDEX ? jsonDataGetChild(data, parentArray) : &data->root;
-        vectorAdd(JsonValue)(&parentPtr->array, &value);
+        vectorAdd(JsonValue)(&parentPtr->array, value);
     }
 }
 
-void jsonDataArrayAddTag(JsonData* data, uint32_t parentArray, Tag name, Tag value)
+void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value) {jsonDataArrayAddValuePtr(data, parentArray, &value);}
+
+void jsonDataArrayAddBool(JsonData* data, uint32_t parentArray, bool value)
+{
+    JsonValue val = {value, JSON_TYPE_BOOL};
+    jsonDataArrayAddValuePtr(data, parentArray, &val);
+}
+
+void jsonDataArrayAddInt(JsonData* data, uint32_t parentArray, int32_t value)
+{
+    JsonValue val = {value, JSON_TYPE_INT};
+    jsonDataArrayAddValuePtr(data, parentArray, &val);
+}
+
+void jsonDataArrayAddReal(JsonData* data, uint32_t parentArray, double value)
+{
+    JsonValue val = {value, JSON_TYPE_REAL};
+    jsonDataArrayAddValuePtr(data, parentArray, &val);
+}
+
+void jsonDataArrayAddString(JsonData* data, uint32_t parentArray, const char* value)
+{
+    JsonValue val = {value, JSON_TYPE_STRING};
+    jsonDataArrayAddValuePtr(data, parentArray, &val);
+}
+
+void jsonDataArrayAddNull(JsonData* data, uint32_t parentArray)
+{
+    JsonValue val = {0, JSON_TYPE_NULL};
+    jsonDataArrayAddValuePtr(data, parentArray, &val);
+}
+
+void jsonDataArrayAddTag(JsonData* data, uint32_t parentArray, Tag value)
 {
     JsonObject* parentPtr;
     JsonObject* stringVal;

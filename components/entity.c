@@ -12,7 +12,6 @@
 void serializeEntities(const ECTColumn* colGen, JsonData* data, uint32_t column)
 {
     const ECTColumn(Entity)* entities = (ECTColumn(Entity)*)colGen;
-    JsonValue val;
     uint32_t objIdx;
     uint32_t transform;
     
@@ -20,24 +19,18 @@ void serializeEntities(const ECTColumn* colGen, JsonData* data, uint32_t column)
     {
         objIdx = jsonDataArrayAddObject(data, column);
         
-        val.type = JSON_TYPE_INT;
-        val.intValue = (int32_t)entities->components.data[i].self.id;
-        jsonDataAddValue(data, objIdx, jsonKey("id"), val);
+        jsonDataAddInt(data, objIdx, jsonKey("id"), (int32_t)entities->components.data[i].self.id);
         
-        val.intValue = (int32_t)entities->components.data[i].self.flags;
-        jsonDataAddValue(data, objIdx, jsonKey("flags"), val);
+        jsonDataAddInt(data, objIdx, jsonKey("flags"), (int32_t)entities->components.data[i].self.flags);
         
         if(entities->components.data[i].self.parent == INVALID_OBJECT)
         {
-            val.type = JSON_TYPE_NULL;
-            val.intValue = INVALID_OBJECT;
+            jsonDataAddNull(data, objIdx, jsonKey("parent"));
         }
         else
         {
-            val.intValue = (int32_t)entities->components.data[i].self.parent;
+            jsonDataAddInt(data, objIdx, jsonKey("parent"), (int32_t)entities->components.data[i].self.parent);
         }
-        
-        jsonDataAddValue(data, objIdx, jsonKey("parent"), val);
         
         jsonDataAddTag(data, objIdx, jsonKey("name"), entities->components.data[i].name);
         

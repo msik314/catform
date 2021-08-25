@@ -91,14 +91,26 @@ void jsonDataDestroy(JsonData* data);
 static inline JsonObject* jsonDataGetChild(JsonData* data, uint32_t index){return &data->children.data[index];}
 static inline const JsonObject* jsonDataGetChildConst(const JsonData* data, uint32_t index){return &data->children.data[index];}
 
-void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value);
+void jsonDataAddBool(JsonData* data, uint32_t parent, Tag name, bool value);
+void jsonDataAddInt(JsonData* data, uint32_t parent, Tag name, int32_t value);
+void jsonDataAddReal(JsonData* data, uint32_t parent, Tag name, double value);
+void jsonDataAddString(JsonData* data, uint32_t parent, Tag name, const char* value);
 void jsonDataAddTag(JsonData* data, uint32_t parent, Tag name, Tag value);
+void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value);
+void jsonDataAddNull(JsonData* data, uint32_t parent, Tag name);
+
 uint32_t jsonDataAddObject(JsonData* data, uint32_t parent, Tag name);
 uint32_t jsonDataAddArray(JsonData* data, uint32_t parent, Tag name);
 
 
+void jsonDataArrayAddBool(JsonData* data, uint32_t parentArray, bool value);
+void jsonDataArrayAddInt(JsonData* data, uint32_t parentArray, int32_t value);
+void jsonDataArrayAddReal(JsonData* data, uint32_t parentArray, double value);
+void jsonDataArrayAddString(JsonData* data, uint32_t parentArray, const char* value);
+void jsonDataArrayAddTag(JsonData* data, uint32_t parent, Tag value);
 void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value);
-void jsonDataArrayAddTag(JsonData* data, uint32_t parent, Tag name, Tag value);
+void jsonDataArrayAddNull(JsonData* data, uint32_t parentArray);
+
 uint32_t jsonDataArrayAddObject(JsonData* data, uint32_t parent);
 uint32_t jsonDataArrayAddArray(JsonData* data, uint32_t parent);
 

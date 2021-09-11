@@ -245,24 +245,24 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
         case JOB_TYPE(compReady):
             jobArgDecode(job.args, &sysIdx, &colIdx);
             schedulerWaitDeps(scheduler, systems[sysIdx].readyDeps->dependencies, systems[sysIdx].readyDeps->numDependencies);            
-            job.function.readyFun(&systems[sysIdx], &table->columns[colIdx]);
+            APPLY_JOB(job, readyFun, &systems[sysIdx], &table->columns[colIdx]);
             break;
         
         case JOB_TYPE(sysUpdate):
             jobArgDecode(job.args, &sysIdx, &colIdx);
-            job.function.updateFun(&systems[sysIdx], &sysFlags[sysIdx], (const ECTColumn*)table->columns, table->numColumns, deltaTime);
+            APPLY_JOB(job, updateFun, &systems[sysIdx], &sysFlags[sysIdx], (const ECTColumn*)table->columns, table->numColumns, deltaTime);
             break;
         
         case JOB_TYPE(compCopy):
             jobArgDecode(job.args, &sysIdx, &colIdx);
             schedulerWaitDeps(scheduler, systems[sysIdx].copyDeps->dependencies, systems[sysIdx].copyDeps->numDependencies);
-            job.function.copyFun(&systems[sysIdx], &table->columns[colIdx], (const SysFlags*)sysFlags, numSystems, deltaTime);
+            APPLY_JOB(job, copyFun, &systems[sysIdx], &table->columns[colIdx], (const SysFlags*)sysFlags, numSystems, deltaTime);
             break;
         
         case JOB_TYPE(compDestroy):
             jobArgDecode(job.args, &sysIdx, &colIdx);
             schedulerWaitDeps(scheduler, systems[sysIdx].destroyDeps->dependencies, systems[sysIdx].destroyDeps->numDependencies);
-            job.function.destroyFun(&systems[sysIdx], &table->columns[colIdx]);
+            APPLY_JOB(job, destroyFun, &systems[sysIdx], &table->columns[colIdx]);
             break;
         
         case JOB_TYPE(colMark):
@@ -279,7 +279,7 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
                 schedulerWaitDeps(scheduler, colDeps, 2);
             }
             
-            job.function.parentFun(&table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
+            APPLY_JOB(job, parentFun, &table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
             break;
             
         case JOB_TYPE(colParent):
@@ -287,7 +287,7 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
             colDeps[0] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_AR);
             colDeps[1] = MAKE_JOB_ID(colIdx, PHASE_AR);
             schedulerWaitDeps(scheduler, colDeps, colIdx != COMPONENT(Entity) ? 2 : 1);
-            job.function.parentFun(&table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
+            APPLY_JOB(job, parentFun, &table->columns[colIdx], &table->columns[COMPONENT(Entity)], &table->pointerMap);
             break;
         
         case JOB_TYPE(colAddRemove):
@@ -295,11 +295,11 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
             colDeps[0] = MAKE_JOB_ID(COMPONENT(Entity), PHASE_DESTROY);
             colDeps[1] = MAKE_JOB_ID(colIdx, PHASE_DESTROY);
             schedulerWaitDeps(scheduler, colDeps, colIdx != COMPONENT(Entity) ? 2 : 1);
-            job.function.addRemoveFun(&table->columns[colIdx], &table->pointerMap);
+            APPLY_JOB(job, addRemoveFun, &table->columns[colIdx], &table->pointerMap);
             break;
         
         case JOB_TYPE(sync):
-            job.function.genericFun(job.args); //Technically undefined behavior, void (*)(void*) != void (*)(Barrier*)
+            APPLY_JOB(job, genericFun, job.args); //Technically undefined behavior, void (*)(void*) != void (*)(Barrier*)
             break;
         
         default:

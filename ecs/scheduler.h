@@ -45,7 +45,7 @@ typedef union
     ECTColumnParentFun parentFun;
     ECTColumnAddRemoveFun addRemoveFun;
 }
-JobFun;
+JobFun;  
 
 typedef struct
 {
@@ -56,6 +56,8 @@ typedef struct
 }
 Job;
 VECTOR_DECL(Job);
+
+#define APPLY_JOB(JOB, FUNCTION, ...) if(JOB.function.FUNCTION) JOB.function.FUNCTION(__VA_ARGS__)
 
 static inline void* jobArgEncode(uint32_t sysIdx, uint32_t colIdx) {return (void*)(((uint64_t)sysIdx << 32) | colIdx);}
 static inline void jobArgDecode(void* args, uint32_t* outSysIdx, uint32_t* outColIdx)

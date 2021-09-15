@@ -19,6 +19,10 @@ typedef enum ComponentTypes
 }
 ComponentType;
 
+#define getComponents(columns, type) ((type*)((columns)[COMPONENT(type)].components.data))
+#define getComponentsConst(column, type) ((const type*)((columns)[COMPONENT(type)].components.data))
+#define getNumComponents(columns, type) ((columns)[COMPONENT(type)].components.size)
+
 #ifdef __cplusplus
 };
 #endif //__cplusplus

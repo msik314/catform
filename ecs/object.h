@@ -13,6 +13,7 @@ extern "C"
 
 #define OBJECT_FLAG_REMOVE 0x00000001
 #define OBJECT_FLAG_UNREADY 0x00000002
+#define OBJECT_FLAG_DISABLED 0x00000004
     
 typedef uint32_t ObjectID;
 HASHMAP_DECL(ObjectID, ObjectID)

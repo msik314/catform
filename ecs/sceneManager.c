@@ -132,7 +132,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     {
         colSys = sceneManager->columnSystems[i];
         job.copyFun = sceneManager->systems.data[colSys].compCopy;
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compCopy), jobArgEncode(colSys, i), MAKE_JOB_ID(colSys, 1));
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compCopy), jobArgEncode(colSys, i), MAKE_JOB_ID(i, 1));
     }
     
     //Phase 3
@@ -148,7 +148,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     {
         colSys = sceneManager->columnSystems[i];
         job.destroyFun = sceneManager->systems.data[colSys].compDestroy;
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compDestroy), jobArgEncode(colSys, i), MAKE_JOB_ID(colSys, 3));
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compDestroy), jobArgEncode(colSys, i), MAKE_JOB_ID(i, 3));
     }
     
     //Phase 5
@@ -172,7 +172,7 @@ void sceneManagerInit(SceneManager* sceneManager)
     {
         colSys = sceneManager->columnSystems[i];
         job.readyFun = sceneManager->systems.data[colSys].compReady;
-        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compReady), jobArgEncode(colSys, i), MAKE_JOB_ID(colSys, 6));
+        schedulerRegister(&sceneManager->scheduler, job, JOB_TYPE(compReady), jobArgEncode(colSys, i), MAKE_JOB_ID(i, 6));
     }
     
     //Frame Sync

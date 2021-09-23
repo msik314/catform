@@ -76,6 +76,9 @@ JsonType jsonArrayGetIndex(const JsonObject* object, uint32_t index, void* outVa
 static inline uint32_t jsonArraySize(const JsonObject* object) {return object->array.size;}
 static inline uint32_t jsonStringLen(const JsonObject* object) {return stringLength(&object->string);}
 
+double jsonObjectGetKeyAsReal(const JsonObject* object, const char* key);
+double jsonArrayGetIndexAsReal(const JsonObject* object, uint32_t index);
+
 VECTOR_DECL(JsonObject);
 
 typedef struct

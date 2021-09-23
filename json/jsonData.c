@@ -59,6 +59,28 @@ JsonType jsonObjectGetKey(const JsonObject* object, const char* key, void* outVa
     return value.type;
 }
 
+double jsonObjectGetKeyAsReal(const JsonObject* object, const char* key)
+{
+    Tag tag = jsonKey(key);
+    JsonValue value;
+    uint32_t res;
+    
+    res = hashmapGet(Tag, JsonValue)(&object->object, &tag, &value);
+    if(!res) return JSON_TYPE_UNKNOWN;
+    
+    switch(value.type)
+    {
+    case JSON_TYPE_REAL:
+        return value.realValue;
+        
+    case JSON_TYPE_INT:
+        return (double)value.intValue;
+        
+    default:
+        return 0.0;
+    }
+}
+
 JsonType jsonArrayGetIndex(const JsonObject* object, uint32_t index, void* outVal)
 {
     switch(object->array.data[index].type)
@@ -90,6 +112,23 @@ JsonType jsonArrayGetIndex(const JsonObject* object, uint32_t index, void* outVa
         
     default:
         break;
+    }
+    
+    return object->array.data[index].type;
+}
+
+double jsonArrayGetIndexAsReal(const JsonObject* object, uint32_t index)
+{
+    switch(object->array.data[index].type)
+    {
+    case JSON_TYPE_REAL:
+        return object->array.data[index].realValue;
+        
+    case JSON_TYPE_INT:
+        return (double)(object->array.data[index].intValue);
+        
+    default:
+        return 0.0;
     }
     
     return object->array.data[index].type;

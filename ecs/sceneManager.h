@@ -40,6 +40,7 @@ void sceneManagerDestroy(SceneManager* sceneManager);
 
 static inline const PointerMap* sceneManagerGetMap(SceneManager* sceneManager) {return &sceneManager->ecTable.pointerMap;}
 static inline ECTable* sceneManagerGetTable(SceneManager* sceneManager) {return &sceneManager->ecTable;}
+static inline const ECTable* sceneManagerGetTableConst(SceneManager* sceneManager) {return &sceneManager->ecTable;}
 
 void sceneManagerRegisterSystem(SceneManager* sceneManager, const ECSystem* system);
 void sceneManagerRegisterColumnSys(SceneManager* sceneManager, const ECSystem* system, uint32_t column, bool writesFlags);

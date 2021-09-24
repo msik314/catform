@@ -53,6 +53,22 @@ while(0)
 
 #define ecTableRemove(table, type, objectID) (ectColumnRemove(type)((ECTColumn(type)*)&(table)->columns[COMPONENT(type)], pointerMapGet(&(table)->pointerMap, objectID)))
 
+#define ecTableGetComponent(table, type, entityID, outID)\
+do\
+{\
+    type* components = (type*)((table)->columns[COMPONENT(type)].components.data);\
+    uint32_t numComponents = (table)->columns[COMPONENT(type)].components.size;\
+    for(uint32_t i = 0; i < numComponents; ++i)\
+    {\
+        if(components[i].self.parent == (entityID))\
+        {\
+            *(outID) = components[i].self.id;\
+            break;\
+        }\
+    }\
+}\
+while(0)
+
 void ecTableSerialize(const ECTable* table, JsonData* data, uint32_t parentObject);
 void ecTableDeserialize(ECTable* table, const JsonData* data, uint32_t parentObject);
 

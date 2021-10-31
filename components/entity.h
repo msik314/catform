@@ -32,6 +32,8 @@ static inline bool entityHasComponent(const Entity* entity, uint32_t index)
     return (entity->componentMask[0] & (1ull << index)) || (entity->componentMask[1] & (1ull << (index - 64)));
 }
 
+bool entityIdHasComponent(ObjectID entityId, uint32_t index);
+
 static inline void entitySetHasComponent(Entity* entity, uint32_t index)
 {
     if(index < 64)

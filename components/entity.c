@@ -2,12 +2,26 @@
 #include "components/entity.h"
 
 #include <string.h>
+#include "components/component.h"
+#include "ecs/ecTable.h"
 #include "ecs/ectColumn.h"
 #include "ecs/ectColumn.inl"
 #include "ecs/pointerMap.h"
+#include "ecs/sceneManager.h"
 #include "json/jsonData.h"
 #include "json/jsonTypes.h"
 #include "core/tag.h"
+
+bool entityIdHasComponent(ObjectID entityId, uint32_t index)
+{
+    register const SceneManager* sceneMan = sceneManagerGetInstance();
+    register const ECTable* table = sceneManagerGetTableConst(sceneMan);
+    register const PointerMap* map = sceneManagerGetMap(sceneMan);
+    register const ECTColumn(Entity)* column = (const ECTColumn(Entity)*)&table->columns[COMPONENT(Entity)];
+    register const Entity* entity = &column->components.data[pointerMapGet(map, entityId)];
+    
+    return entityHasComponent(entity, index);
+}
 
 void serializeEntities(const ECTColumn* colGen, JsonData* data, uint32_t column)
 {

@@ -14,6 +14,3 @@ COLLECTION_IMPL(double)
 
 #include "components/entity.h"
 COLLECTION_IMPL(Entity);
-
-#include "components/testComp.h"
-COLLECTION_IMPL(TestComp);

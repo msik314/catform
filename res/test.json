@@ -1,9 +1,0 @@
-{
-    "object" : {
-        "bool" : false,
-        "int" : 65535,
-        "real" : 3.141592
-    },
-    "array" : [2, 4, 6, 5, 7, 3],
-    "string" : "I am a string"
-}

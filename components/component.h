@@ -13,7 +13,6 @@ extern "C"
 typedef enum ComponentTypes
 {
     COMPONENT(Entity),
-    COMPONENT(TestComp),
     
     NUM_COMPONENT_TYPES
 }

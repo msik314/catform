@@ -13,7 +13,6 @@ extern "C"
 typedef enum SystemType
 {
     SYSTEM(Entity),
-    SYSTEM(TestComp),
     
     NUM_SYSTEMS
 }

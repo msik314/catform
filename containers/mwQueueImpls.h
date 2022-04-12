@@ -14,6 +14,3 @@ MWQUEUE_IMPL(double)
 
 #include "components/entity.h"
 MWQUEUE_IMPL(Entity);
-
-#include "components/testComp.h"
-MWQUEUE_IMPL(TestComp);

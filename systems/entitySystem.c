@@ -16,14 +16,7 @@
 #include "util/atomics.h"
 
 const JobDependency ENTITY_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(Entity), PHASE_PARENT)}};
-const JobDependency ENTITY_COPY_DEPS =
-{
-    2, 
-    {
-        MAKE_JOB_ID(SYSTEM(Entity), PHASE_UPDATE),
-        MAKE_JOB_ID(SYSTEM(TestComp), PHASE_UPDATE)
-    }
-};
+const JobDependency ENTITY_COPY_DEPS = {1, {MAKE_JOB_ID(SYSTEM(Entity), PHASE_UPDATE)}};
 
 const JobDependency ENTITY_DESTROY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(Entity), PHASE_MARK)}};
 
@@ -73,18 +66,7 @@ void entitySysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, 
 
 
 
-void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime)
-{
-    ECTColumn(Entity)* entities = (ECTColumn(Entity)*)column;
-    uint32_t* testCompFlags = (uint32_t*)atomicLoadPtr(&flags[SYSTEM(TestComp)]);
-    Entity* entity;
-    
-    for(uint32_t i = 0; i < testCompFlags[0]; ++i)
-    {
-        entity = &entities->components.data[testCompFlags[2 * i + 2]];
-        fetchOr32(&entity->self.flags, (testCompFlags[2 * i + 1] >= 16) * OBJECT_FLAG_REMOVE);
-    }
-}
+void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime){}
 
 void entitycompDestroy(ECSystem* self, ECTColumn* column)
 {
@@ -126,9 +108,4 @@ void entityCompDestroyAll(ECSystem* self, ECTColumn* column)
 }
 
 void entityReady(Entity* entity){}
-void entityOnDestroy(Entity* entity)
-{
-    char buffer[sizeof(Tag) + 1] = {};
-    strncpy(buffer, entity->name.data, sizeof(Tag));
-    printf("Destroying entity %s\n", buffer);
-} 
+void entityOnDestroy(Entity* entity){} 

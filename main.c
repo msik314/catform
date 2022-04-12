@@ -9,8 +9,12 @@
 #include <unistd.h>
 #endif //_WIN32
 
+#include <GL/gl3w.h>
+#include <GLFW/glfw3.h>
+
 #include "util/globalDefs.h"
 #include "rpmalloc/rpmalloc.h"
+#include "core/window.h"
 #include "ecs/sceneManager.h"
 #include "systems/systems.h"
 #include "systems/entitySystem.h"
@@ -23,6 +27,8 @@ int32_t main(int argc, char** argv)
     ptrdiff_t pathLen;
     SceneManager* sceneMan = sceneManagerGetInstance();
     void* linBuffer;
+    
+    Window window;
     
     pathLen = strrchr(argv[0], '/') - argv[0];
     if(pathLen < 0) pathLen = strrchr(argv[0], '\\') - argv[0];
@@ -43,15 +49,30 @@ int32_t main(int argc, char** argv)
     linBuffer = rpmalloc(LINALLOC_SIZE);
     linInit(linBuffer, LINALLOC_SIZE);
     
+    glfwInit();
+    gl3wInit();
+    
+    window.width = 1280;
+    window.height = 720;
+    window.monitor = -1;
+    
+    windowCreate(&window, "Catform");
+    
     sceneManagerCreate(sceneMan, 1);
     sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity), true);
     
-//     while(running)
-//     {        
-//         sceneManagerFrame(sceneMan, 0.016f);
-//     }
+    while(!windowShouldClose(&window))
+    {
+        glfwPollEvents();
+        sceneManagerFrame(sceneMan, 0.016f);
+        windowSwapBuffers(&window);
+    }
     
     sceneManagerDestroy(sceneMan);
+    
+    windowDestroy(&window);
+    
+    glfwTerminate();
     
     linCleanup();
     rpfree(linBuffer);

@@ -1,7 +1,7 @@
 includeDirs = -I. -Iinclude 
 cFlags = -Wfatal-errors -O3 -D NDEBUG
 cxxFlags = -Wfatal-errors -O3 -std=c++11 -D NDEBUG
-linkFlags = -Llib -mwindows
+linkFlags = -Llib -lglfw3 -lgdi32 -mwindows
 
 shaderFlags = -V -Ishaders
 

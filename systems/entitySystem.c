@@ -2,7 +2,6 @@
 #include "systems/entitySystem.h"
 
 #include <string.h>
-#include <stdio.h>
 
 #include "ecs/ecSystem.h"
 #include "ecs/ectColumn.h"

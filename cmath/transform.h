@@ -18,6 +18,9 @@ typedef struct
 }
 Transform;
 
+void transformCompose(const Transform* transform, Mat4* outMatrix);
+bool transformDecompose(const Mat4* matrix, Transform* outTransform);
+
 #define TRANSFORM_IDENTITY ((Transform){QUAT_IDENTITY, {0, 0, 0}, {1, 1, 1}})
 
 #ifdef __cplusplus

@@ -166,7 +166,7 @@ void jsonDataAddMat4(JsonData* data, uint32_t parent, Tag name, const Mat4* valu
     val.type = JSON_TYPE_REAL;
     for(uint32_t i = 0; i < 16; ++i)
     {
-        val.realValue = (double)value->linear[i];
+        val.realValue = (double)value->data[i];
         jsonDataArrayAddValue(data, array, val);
     }
 }
@@ -179,7 +179,7 @@ void jsonDataArrayAddMat4(JsonData* data, uint32_t parent, const Mat4* value)
     val.type = JSON_TYPE_REAL;
     for(uint32_t i = 0; i < 16; ++i)
     {
-        val.realValue = (double)value->linear[i];
+        val.realValue = (double)value->data[i];
         jsonDataArrayAddValue(data, array, val);
     }
 }
@@ -190,6 +190,6 @@ void jsonDataGetMat4(const JsonData* data, uint32_t matrix, Mat4* outValue)
     
     for(uint32_t i = 0; i < 16; ++i)
     {
-        outValue->linear[i] = getJsonReal(object, i);
+        outValue->data[i] = getJsonReal(object, i);
     }
 }

@@ -38,8 +38,8 @@ typedef Vec4 Quat;
 
 typedef union
 {
-    float linear[16];
-    float data[4][4];
+    float data[16];
+    float matrix[4][4];
     Vec4 columns[4];
 }
 Mat4;

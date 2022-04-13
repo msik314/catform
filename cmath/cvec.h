@@ -38,6 +38,26 @@ typedef Vec4 Quat;
 
 typedef union
 {
+    float data[4];
+    float matrix[2][2];
+    Vec2 columns[2];
+}
+Mat2;
+
+#define MAT2_IDENTITY ((Mat2){1, 0, 0, 1})
+
+typedef union
+{
+    float data[9];
+    float matrix[3][3];
+    Vec3 columns[3];
+}
+Mat3;
+
+#define MAT3_IDENTITY ((Mat3){1, 0, 0, 0, 1, 0, 0, 0, 1})
+
+typedef union
+{
     float data[16];
     float matrix[4][4];
     Vec4 columns[4];

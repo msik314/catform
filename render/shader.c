@@ -2,7 +2,6 @@
 #include "render/shader.h"
 
 #include <string.h>
-#include <stdio.h>
 #include "core/error.h"
 #include "cmath/cVec.h"
 #include "util/assert.h"

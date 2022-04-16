@@ -28,13 +28,13 @@ TextureBank;
 
 int32_t textureBankCreate(TextureBank* textureBank, uint32_t id, uint32_t width, uint32_t height, uint32_t numImages);
 void textureBankDestroy(TextureBank* textureBank);
-Texture textureBankAlloc(TextureBank* textureBank, void* textureData, uint32_t dataSize);
+Texture textureBankAlloc(TextureBank* textureBank, const void* textureData, uint32_t dataSize);
 void textureBankFree(TextureBank* textureBank, Texture texture);
 bool textureBankEmpty(TextureBank* textureBank);
 bool textureBankFull(TextureBank* textureBank);
 
 //Alias for textureBankAlloc 
-static inline Texture textureBankTexture(TextureBank* textureBank, void* textureData, uint32_t dataSize)
+static inline Texture textureBankTexture(TextureBank* textureBank, const void* textureData, uint32_t dataSize)
 {
     return textureBankAlloc(textureBank, textureData, dataSize);
 }

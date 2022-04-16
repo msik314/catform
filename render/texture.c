@@ -42,9 +42,9 @@ int32_t textureBankCreate(TextureBank* textureBank, uint32_t id, uint32_t width,
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, width, height, numImages, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, NULL);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, width, height, numImages, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     
     return CAT_SUCCESS;
 }
@@ -54,7 +54,7 @@ void textureBankDestroy(TextureBank* textureBank)
     glDeleteTextures(1, &textureBank->texture);
 }
 
-Texture textureBankAlloc(TextureBank* textureBank, void* textureData, uint32_t dataSize)
+Texture textureBankAlloc(TextureBank* textureBank, const void* textureData, uint32_t dataSize)
 {
     int32_t idx = -1;
     uint32_t mask = 0;
@@ -76,7 +76,7 @@ Texture textureBankAlloc(TextureBank* textureBank, void* textureData, uint32_t d
     if(idx == -1) return 0xffffffff;
     
     glActiveTexture(GL_TEXTURE0 + textureBank->id);
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, idx, textureBank->width, textureBank->height, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, textureData);
+    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, idx, textureBank->width, textureBank->height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
     
     texture = textureBank->id;
     texture <<= 16;

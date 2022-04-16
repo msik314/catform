@@ -31,10 +31,10 @@ typedef struct
 }
 Mesh;
 
-void meshCreate(Mesh* mesh, Vertex* vertices, uint32_t numVertices, uint16_t* indices, uint32_t numIndices);
+void meshCreate(Mesh* mesh, const Vertex* vertices, uint32_t numVertices, const uint16_t* indices, uint32_t numIndices);
 void meshDestroy(Mesh* mesh);
 
-static inline void draw(Mesh* mesh, uint32_t numInstances)
+static inline void meshDraw(Mesh* mesh, uint32_t numInstances)
 {
     glBindVertexArray(mesh->vao);
     glDrawElementsInstanced(GL_TRIANGLES, mesh->drawCount, GL_UNSIGNED_SHORT, NULL, numInstances);

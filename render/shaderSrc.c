@@ -23,14 +23,16 @@ const char* FRAG_SRC =
 "layout(location = 0)out vec4 fragColor;"
 
 "layout(location = 1)uniform vec4 tint;"
+"layout(location = 2)uniform sampler2DArray textureBank;"
+"layout(location = 3)uniform int texIn;"
 
-"vec4 texIndex(in tex, in vec2 xy, in int index)"
+"vec4 texIndex(in sampler2DArray tex, in vec2 xy, in int index)"
 "{"
-    "ivec3 texSize = textureSize(tex, 0​);"
-    "return texture(tex, vec3(xy, float(z)/float(texSize - 1)));"
+    "ivec3 texSize = textureSize(tex, 0);"
+    "return texture(tex, vec3(xy, float(index)/float(texSize.z - 1)));"
 "}"
 
 "void main()"
 "{"
-    "fragColor = tint;"
+    "fragColor = texIndex(textureBank, texCoord, texIn & 0xff);"
 "}";

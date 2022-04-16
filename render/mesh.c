@@ -5,7 +5,7 @@
 
 #include "cmath/cVec.h"
 
-void meshCreate(Mesh* mesh, Vertex* vertices, uint32_t numVertices, uint16_t* indices, uint32_t numIndices)
+void meshCreate(Mesh* mesh, const Vertex* vertices, uint32_t numVertices, const uint16_t* indices, uint32_t numIndices)
 {
     mesh->drawCount = numIndices;
 

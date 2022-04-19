@@ -5,6 +5,7 @@
 #include "core/error.h"
 #include "util/assert.h"
 #include "util/utilMacros.h"
+#include "render/shader.h"
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -92,6 +93,14 @@ void textureBankFree(TextureBank* textureBank, Texture texture)
     textureBank->freeMask[mask] |= (1 << idx);
 }
 
+void textureBankRealloc(TextureBank* textureBank, Texture texture)
+{
+    uint32_t idx = texture & 0x0000003f;
+    uint32_t mask = (texture >> 6) & 0x00000003;
+    
+    textureBank->freeMask[mask] &= ~(1 << idx);
+}
+
 bool textureBankEmpty(TextureBank* textureBank)
 {
     for(int32_t i = 0; i < 4; ++i)
@@ -110,4 +119,9 @@ bool textureBankFull(TextureBank* textureBank)
     }
     
     return true;
+}
+
+void textureBankBindSlot(TextureBank* textureBank, uint32_t slot)
+{
+    shaderUniform1u(slot, textureBank->id);
 }

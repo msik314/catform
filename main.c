@@ -24,10 +24,11 @@
 #include "render/shader.h"
 #include "render/shaderSrc.h"
 #include "render/texture.h"
+#include "render/texMan.h"
 
 #define LINALLOC_SIZE 1048576
-#define MAGENTA 0xff, 0x00, 0xff, 0xff
-#define BLACK 0x00, 0x00, 0x00, 0x00
+#define BLUE 0x00, 0x00, 0xff, 0xff
+#define GREEN 0x00, 0xff, 0x00, 0xff
 
 const Vertex vertices[] = 
 {
@@ -39,7 +40,13 @@ const Vertex vertices[] =
 
 const uint16_t indices[] = {0, 1, 2, 2, 3, 0};
 
-const uint8_t texData[] = {MAGENTA, BLACK, BLACK, MAGENTA};
+const uint8_t texData[] = 
+{
+    BLUE, GREEN, BLUE, GREEN,
+    GREEN, BLUE, GREEN, BLUE,
+    BLUE, GREEN, BLUE, GREEN,
+    GREEN, BLUE, GREEN, BLUE
+};
 
 int32_t main(int argc, char** argv)
 {
@@ -50,9 +57,10 @@ int32_t main(int argc, char** argv)
     Window window;
     Mesh mesh;
     Shader shader;
-    TextureBank texBank;
-    Texture texture;
     Mat4 transform = MAT4_IDENTITY;
+    TexMan texMan;
+    Tag texName;
+    Texture texture;
     
     pathLen = strrchr(argv[0], '/') - argv[0];
     if(pathLen < 0) pathLen = strrchr(argv[0], '\\') - argv[0];
@@ -87,8 +95,11 @@ int32_t main(int argc, char** argv)
     
     meshCreate(&mesh, vertices, sizeof(vertices)/sizeof(Vertex), indices, sizeof(indices)/sizeof(uint16_t));
     shaderCreate(&shader, VERT_SRC, FRAG_SRC);
-    textureBankCreate(&texBank, 0, 2, 2, 1);
-    texture = textureBankTexture(&texBank, &texData, sizeof(texData));
+    
+    texManCreate(&texMan);
+    
+    tagSet(&texName, "checkBoard");
+    texture = texManLoad(&texMan, texName, texData, 4, 4);
     
     while(!windowShouldClose(&window))
     {
@@ -97,13 +108,14 @@ int32_t main(int argc, char** argv)
         shaderBind(&shader);
         shaderUniformMat4(0, &transform);
         shaderUniform4f(1, (Vec4){1, 1, 1, 1});
-        shaderUniform1u(2, texBank.id);
-        shaderUniform1i(3, texture);
+        shaderUniform1i(2, texture);
         
         meshDraw(&mesh, 1);
         
         windowSwapBuffers(&window);
     }
+    
+    texManDestroy(&texMan);
     
     sceneManagerDestroy(sceneMan);
     

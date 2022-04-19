@@ -11,3 +11,6 @@ RING_IMPL(char)
 RING_IMPL(bool)
 RING_IMPL(float)
 RING_IMPL(double)
+
+#include "render/texman.h"
+RING_IMPL(TextureSlot)

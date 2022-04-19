@@ -6,3 +6,6 @@ HASHMAP_IMPL_EQ(Tag, JsonValue, tagEq)
 
 #include "ecs/object.h"
 HASHMAP_IMPL(ObjectID, ObjectID)
+
+#include "render/texture.h"
+HASHMAP_IMPL_EQ(Tag, Texture, tagEq)

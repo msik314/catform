@@ -18,6 +18,7 @@
 #include "ecs/sceneManager.h"
 #include "systems/systems.h"
 #include "systems/entitySystem.h"
+#include "systems/spriteSystem.h"
 #include "util/linalloc.h"
 #include "cmath/cVec.h"
 #include "render/mesh.h"
@@ -83,6 +84,7 @@ int32_t main(int argc, char** argv)
     
     sceneManagerCreate(sceneMan, 1);
     sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity), true);
+    sceneManagerRegisterColumnSys(sceneMan, &SPRITE_SYSTEM, COMPONENT(SpriteComponent), false);
     
     glfwInit();
     

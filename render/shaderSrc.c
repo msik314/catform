@@ -55,7 +55,8 @@ const char* FRAG_SRC =
     "case 7:"
         "return texIndex(textureBanks[7], xy, index);\n"
     "default:"
-        "return texIndex(textureBanks[7], xy, index);\n"
+        "int quad = int(2 * xy.x) + int(2 * xy.y);"
+        "return vec4(float(quad != 1), 0, float(quad != 1), 1);\n"
     "}"
 "}"
 

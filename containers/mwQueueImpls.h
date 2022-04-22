@@ -14,3 +14,6 @@ MWQUEUE_IMPL(double)
 
 #include "components/entity.h"
 MWQUEUE_IMPL(Entity);
+
+#include "components/spriteComponent.h"
+MWQUEUE_IMPL(SpriteComponent);

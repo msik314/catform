@@ -58,7 +58,7 @@ int32_t main(int argc, char** argv)
     Mesh mesh;
     Shader shader;
     Mat4 transform = MAT4_IDENTITY;
-    TexMan texMan;
+    TexMan* texMan = texManGetInstance();
     Tag texName;
     Texture texture;
     
@@ -96,10 +96,10 @@ int32_t main(int argc, char** argv)
     meshCreate(&mesh, vertices, sizeof(vertices)/sizeof(Vertex), indices, sizeof(indices)/sizeof(uint16_t));
     shaderCreate(&shader, VERT_SRC, FRAG_SRC);
     
-    texManCreate(&texMan);
+    texManCreate(texMan);
     
     tagSet(&texName, "checkBoard");
-    texture = texManLoad(&texMan, texName, texData, 4, 4);
+    texture = texManLoad(texMan, texName, texData, 4, 4);
     
     while(!windowShouldClose(&window))
     {
@@ -115,7 +115,7 @@ int32_t main(int argc, char** argv)
         windowSwapBuffers(&window);
     }
     
-    texManDestroy(&texMan);
+    texManDestroy(texMan);
     
     sceneManagerDestroy(sceneMan);
     

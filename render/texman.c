@@ -22,6 +22,12 @@
 
 const char FALLBACK_IMG[16] = {MAGENTA, BLACK, BLACK, MAGENTA};
 
+TexMan* texManGetInstance()
+{
+    static TexMan texMan;
+    return &texMan;
+}
+
 int32_t texManCreate(TexMan* texMan)
 {
     texMan->maxSlot = 0;
@@ -227,11 +233,29 @@ void texManFree(TexMan* texMan, Texture tex)
     }
 }
 
+void texManFreeTag(TexMan* texMan, Tag texName)
+{
+    Texture tex;
+    if(hashmapGet(Tag, Texture)(&texMan->loadedTextures, &texName, &tex))
+    {
+        texManFree(texMan, tex);
+    }
+}
+
 void texManRealloc(TexMan* texMan, Texture tex)
 {
     uint32_t slotIdx = ((uint32_t)tex >> 16) & 0x0000ffff;
     textureSlotSetOp(&texMan->loadedBanks[slotIdx], texMan->opCounter);
     textureBankRealloc(&texMan->loadedBanks[slotIdx].bank, tex);
+}
+
+void texManReallocTag(TexMan* texMan, Tag texName)
+{
+    Texture tex;
+    if(hashmapGet(Tag, Texture)(&texMan->loadedTextures, &texName, &tex))
+    {
+        texManRealloc(texMan, tex);
+    }
 }
 
 void texManClean(TexMan* texMan)
@@ -258,4 +282,13 @@ void texManClean(TexMan* texMan)
     }
     
     texMan->opCounter += 2;
+}
+
+Texture texManGetTexture(TexMan* texMan, Tag name)
+{
+    Texture res;
+    if(!hashmapGet(Tag, Texture)(&texMan->loadedTextures, &name, &res)) return CAT_INVALID_TEXTURE;
+    
+    texManRealloc(texMan, res);
+    return res;
 }

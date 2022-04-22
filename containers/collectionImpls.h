@@ -14,3 +14,6 @@ COLLECTION_IMPL(double)
 
 #include "components/entity.h"
 COLLECTION_IMPL(Entity);
+
+#include "components/spriteComponent.h"
+COLLECTION_IMPL(SpriteComponent);

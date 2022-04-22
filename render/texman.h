@@ -56,15 +56,21 @@ typedef struct
 }
 TexMan;
 
+TexMan* texManGetInstance();
+
 int32_t texManCreate(TexMan* texMan);
 void texManDestroy(TexMan* texMan);
+
+Texture texManGetTexture(TexMan* texMan, Tag name);
 
 Texture texManTryLoadWeak(TexMan* texMan, Tag name, const void* data, uint32_t width, uint32_t height);
 Texture texManTryLoadStrong(TexMan* texMan, Tag name, const void* data, uint32_t width, uint32_t height);
 Texture texManLoad(TexMan* texMan, Tag name, const void* data, uint32_t width, uint32_t height);
 
 void texManFree(TexMan* texMan, Texture tex);
+void texManFreeTag(TexMan* texMan, Tag texName);
 void texManRealloc(TexMan* texMan, Texture tex);
+void texManReallocTag(TexMan* texMan, Tag texName);
 void texManClean(TexMan* texMan);
 
 #ifdef __cplusplus

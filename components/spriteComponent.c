@@ -3,6 +3,8 @@
 
 #include "ecs/ectColumn.h"
 #include "ecs/ectColumn.inl"
+#include "json/jsonData.h"
+#include "json/jsonTypes.h"
 #include "render/texture.h"
 #include "util/resourceMap.h"
 
@@ -31,6 +33,7 @@ void serializeSpriteComponents(const ECTColumn* colGen, JsonData* data, uint32_t
         }
         
         jsonDataAddTag(data, objIdx, jsonKey("texName"), spriteComponents->components.data[i].texName);
+        jsonDataAddVec4(data, objIdx, jsonKey("tint"), spriteComponents->components.data[i].tint);
         
     }
 }
@@ -73,7 +76,8 @@ void deserializeSpriteComponents(ECTColumn* colGen, const JsonData* data, uint32
         jsonObjectGetKey(component, "texName", &stringVal);
         tagSet(&sc.texName, stringVal);
         
-        sc.texture = resourceMapLoadTexture(resourceMap, sc.texName);
+        jsonObjectGetKey(component, "tint", &index);
+        sc.tint = jsonDataGetVec4(data, index);
         
         hashmapGet(ObjectID, ObjectID)(refMap, &sc.self.id, &translatedId);
         sc.self.id = translatedId;

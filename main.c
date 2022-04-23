@@ -16,38 +16,25 @@
 #include "rpmalloc/rpmalloc.h"
 #include "core/window.h"
 #include "ecs/sceneManager.h"
+#include "json/jsonData.h"
+#include "json/jsonReader.h"
 #include "systems/systems.h"
 #include "systems/entitySystem.h"
 #include "systems/spriteSystem.h"
+#include "systems/renderSystem.h"
 #include "util/linalloc.h"
-#include "cmath/cVec.h"
-#include "render/mesh.h"
-#include "render/shader.h"
-#include "render/shaderSrc.h"
-#include "render/texture.h"
-#include "render/texMan.h"
+#include "util/resourceMap.h"
+
+#ifndef CAT_MALLOC
+#include <stdlib.h>
+
+#define CAT_MALLOC(SIZE) malloc(SIZE)
+#define CAT_FREE(PTR) free(PTR)
+#endif //CAT_MALLOC
 
 #define LINALLOC_SIZE 1048576
 #define BLUE 0x00, 0x00, 0xff, 0xff
 #define GREEN 0x00, 0xff, 0x00, 0xff
-
-const Vertex vertices[] = 
-{
-    {-0.5f, 0.5f, 0.0f, 0.0f},
-    {-0.5f, -0.5f, 0.0f, 1.0f},
-    {0.5f, -0.5f, 1.0f, 1.0f},
-    {0.5f, 0.5f, 1.0f, 0.0f}
-};
-
-const uint16_t indices[] = {0, 1, 2, 2, 3, 0};
-
-const uint8_t texData[] = 
-{
-    BLUE, GREEN, BLUE, GREEN,
-    GREEN, BLUE, GREEN, BLUE,
-    BLUE, GREEN, BLUE, GREEN,
-    GREEN, BLUE, GREEN, BLUE
-};
 
 int32_t main(int argc, char** argv)
 {
@@ -56,12 +43,8 @@ int32_t main(int argc, char** argv)
     void* linBuffer;
     
     Window window;
-    Mesh mesh;
-    Shader shader;
-    Mat4 transform = MAT4_IDENTITY;
-    TexMan* texMan = texManGetInstance();
-    Tag texName;
-    Texture texture;
+    ResourceMap* resourceMap = resourceMapGetInstance();
+    JsonData data;
     
     pathLen = strrchr(argv[0], '/') - argv[0];
     if(pathLen < 0) pathLen = strrchr(argv[0], '\\') - argv[0];
@@ -79,13 +62,13 @@ int32_t main(int argc, char** argv)
     }
     
     rpmalloc_initialize();
-    linBuffer = rpmalloc(LINALLOC_SIZE);
+    linBuffer = CAT_MALLOC(LINALLOC_SIZE);
     linInit(linBuffer, LINALLOC_SIZE);
     
     sceneManagerCreate(sceneMan, 1);
     sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity), true);
     sceneManagerRegisterColumnSys(sceneMan, &SPRITE_SYSTEM, COMPONENT(SpriteComponent), false);
-    
+    sceneManagerRegisterSystem(sceneMan, &RENDER_SYSTEM);
     glfwInit();
     
     window.width = 1280;
@@ -95,38 +78,28 @@ int32_t main(int argc, char** argv)
     windowCreate(&window, "Catform");
     gl3wInit();
     
-    meshCreate(&mesh, vertices, sizeof(vertices)/sizeof(Vertex), indices, sizeof(indices)/sizeof(uint16_t));
-    shaderCreate(&shader, VERT_SRC, FRAG_SRC);
+    sceneManagerInit(sceneMan);
+    resourceMapCreate(resourceMap);
     
-    texManCreate(texMan);
-    
-    tagSet(&texName, "checkBoard");
-    texture = texManLoad(texMan, texName, texData, 4, 4);
+    jsonLoadf(&data, "res/test.cat");
+    sceneManagerLoadScene(sceneMan, &data);
+    jsonDataDestroy(&data);
     
     while(!windowShouldClose(&window))
     {
         glfwPollEvents();
         sceneManagerFrame(sceneMan, 0.016f);
-        shaderBind(&shader);
-        shaderUniformMat4(0, &transform);
-        shaderUniform4f(1, (Vec4){1, 1, 1, 1});
-        shaderUniform1i(2, texture);
-        
-        meshDraw(&mesh, 1);
         
         windowSwapBuffers(&window);
     }
     
-    texManDestroy(texMan);
-    
+    resourceMapDestroy(resourceMap);
     sceneManagerDestroy(sceneMan);
-    
     windowDestroy(&window);
-    
     glfwTerminate();
     
     linCleanup();
-    rpfree(linBuffer);
+    CAT_FREE(linBuffer);
     
     CHECK_LEAKS();
     rpmalloc_finalize();

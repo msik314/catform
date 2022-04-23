@@ -33,7 +33,6 @@ int32_t resourceMapFromJson(ResourceMap* resourceMap, const JsonData* data, cons
     Tag key;
     JsonValue jsonVal;
     ValPath valPath;
-    const JsonObject* pathName;
     
     mapItr = hashmapBegin(Tag, ValPath)(resourceMap);
     while(!hashmapIteratorEnd(Tag, ValPath)(&mapItr))
@@ -51,8 +50,7 @@ int32_t resourceMapFromJson(ResourceMap* resourceMap, const JsonData* data, cons
         hashmapIteratorKey(Tag, JsonValue)(&jsonItr, &key);
         hashmapIteratorValue(Tag, JsonValue)(&jsonItr, &jsonVal);
         
-        pathName = jsonDataGetChildConst(data, jsonVal.objectIndex);
-        strncpy(valPath.path, pathName->string.data, sizeof(ValPath));
+        strncpy(valPath.path, jsonVal.stringValue, sizeof(ValPath));
         valPath.path[sizeof(ValPath) - 1] = '\0';
         texManReallocTag(texMan, key);
         

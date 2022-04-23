@@ -11,6 +11,7 @@
 #include "ecs/phase.h"
 #include "systems/systems.h"
 #include "util/atomics.h"
+#include "util/resourceMap.h"
 
 const JobDependency SPRITE_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(SpriteComponent), PHASE_PARENT)}};
 const JobDependency SPRITE_COPY_DEPS = {1, {MAKE_JOB_ID(SYSTEM(SpriteComponent), PHASE_UPDATE)}};
@@ -102,5 +103,9 @@ void spriteCompDestroyAll(ECSystem* self, ECTColumn* column)
     }
 }
 
-void spriteReady(SpriteComponent* sprite){}
+void spriteReady(SpriteComponent* sprite)
+{
+    sprite->texture = resourceMapLoadTexture(resourceMapGetInstance(), sprite->texName);
+}
+
 void spriteOnDestroy(SpriteComponent* sprite){} 

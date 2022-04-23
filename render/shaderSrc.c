@@ -62,5 +62,5 @@ const char* FRAG_SRC =
 
 "void main()"
 "{"
-    "fragColor = texBank(texIn, texCoord);"
+    "fragColor = tint * texBank(texIn, texCoord);"
 "}";

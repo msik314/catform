@@ -11,6 +11,7 @@
 #include "util/atomics.h"
 #include "util/sync.h"
 #include "util/linalloc.h"
+#include "util/resourceMap.h"
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -208,6 +209,7 @@ bool sceneManagerLoadScene(SceneManager* sceneManager, const JsonData* scene)
     ECTable table = {};
     uint32_t colSys;
     uint32_t tableIdx;
+    uint32_t resIdx;
     
     ecTableCreate(&table, NUM_COMPONENT_TYPES);
     
@@ -226,6 +228,9 @@ bool sceneManagerLoadScene(SceneManager* sceneManager, const JsonData* scene)
         ecTableDestroy(&table);
         return false;
     }
+    
+    jsonObjectGetKey(&scene->root, "resources", &resIdx);
+    resourceMapFromJson(resourceMapGetInstance(), scene, jsonDataGetChildConst(scene, resIdx));
     
     return true;
 }

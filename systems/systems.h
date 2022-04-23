@@ -13,6 +13,7 @@ extern "C"
 typedef enum SystemType
 {
     SYSTEM(Entity),
+    SYSTEM(Render),
     SYSTEM(SpriteComponent),
     
     NUM_SYSTEMS

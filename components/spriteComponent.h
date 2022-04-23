@@ -7,6 +7,7 @@
 #include "ecs/ectColumn.h"
 #include "core/tag.h"
 #include "render/texture.h"
+#include "cmath/cvec.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -20,6 +21,7 @@ typedef struct
     Object self;
     Texture texture;
     Tag texName;
+    Vec4 tint;
 }
 SpriteComponent;
 

@@ -1,8 +1,6 @@
 #include "util/globalDefs.h"
 #include "systems/entitySystem.h"
 
-#include <string.h>
-
 #include "ecs/ecSystem.h"
 #include "ecs/ectColumn.h"
 #include "ecs/sceneManager.h"

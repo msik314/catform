@@ -6,8 +6,6 @@
 #include "json/jsonData.h"
 #include "json/jsonTypes.h"
 #include "render/texture.h"
-#include "util/resourceMap.h"
-
 
 void serializeSpriteComponents(const ECTColumn* colGen, JsonData* data, uint32_t column)
 {
@@ -41,7 +39,6 @@ void serializeSpriteComponents(const ECTColumn* colGen, JsonData* data, uint32_t
 void deserializeSpriteComponents(ECTColumn* colGen, const JsonData* data, uint32_t column, const Hashmap(ObjectID, ObjectID)* refMap)
 {
     ECTColumn(SpriteComponent)* spriteComponents = (ECTColumn(SpriteComponent)*)colGen;
-    ResourceMap* resourceMap = resourceMapGetInstance();
     const JsonObject* array;
     const JsonObject* component;
     int32_t index;

@@ -2,13 +2,15 @@
     "table":
     [
         [
-            {"id":0, "parent":null, "flags":0, "name":"sprite", "transform":{"rotation":[0, 0, 0, 1], "position":[-0.25, 0, 0], "scale":[0.5, 1, 1]}},
-            {"id":2, "parent":null, "flags":0, "name":"sprite2", "transform":{"rotation":[0, 0, 1, 0], "position":[0.25, 0, 0], "scale":[0.5, 1, 1]}}
+            {"id":0, "parent":null, "flags":0, "name":"camera", "transform":{"rotation":[0, 0, 0, 1], "position":[0, 0, 0], "scale":[1, 1, 1]}},
+            {"id":2, "parent":null, "flags":0, "name":"sprite", "transform":{"rotation":[0, 0, 0, 1], "position":[0, 0, 0], "scale":[1, 1, 1]}}
         ],
         [
-            {"id":1, "parent":0, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
-            {"id":3, "parent":2, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]}
-        ]
+            {"id":3, "parent":0, "flags":0, "projection":[0.008333333333333333, 0, 0, 0, 0, 0.014814814814814815, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1]}
+        ],
+        [
+            {"id":1, "parent":2, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
+        ],
     ],
     "resources":{"upArrow":"res/test.png"}
 }

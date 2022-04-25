@@ -20,6 +20,7 @@
 #include "json/jsonReader.h"
 #include "systems/systems.h"
 #include "systems/entitySystem.h"
+#include "systems/cameraSystem.h"
 #include "systems/spriteSystem.h"
 #include "systems/renderSystem.h"
 #include "util/linalloc.h"
@@ -67,6 +68,7 @@ int32_t main(int argc, char** argv)
     
     sceneManagerCreate(sceneMan, 1);
     sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity), true);
+    sceneManagerRegisterColumnSys(sceneMan, &CAMERA_SYSTEM, COMPONENT(CameraComponent), false);
     sceneManagerRegisterColumnSys(sceneMan, &SPRITE_SYSTEM, COMPONENT(SpriteComponent), false);
     sceneManagerRegisterSystem(sceneMan, &RENDER_SYSTEM);
     glfwInit();

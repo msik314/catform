@@ -17,3 +17,6 @@ COLLECTION_IMPL(Entity);
 
 #include "components/spriteComponent.h"
 COLLECTION_IMPL(SpriteComponent);
+
+#include "components/cameraComponent.h"
+COLLECTION_IMPL(CameraComponent);

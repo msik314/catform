@@ -17,3 +17,6 @@ MWQUEUE_IMPL(Entity);
 
 #include "components/spriteComponent.h"
 MWQUEUE_IMPL(SpriteComponent);
+
+#include "components/cameraComponent.h"
+MWQUEUE_IMPL(CameraComponent);

@@ -4,6 +4,8 @@
 #include <cmath/cvec.h>
 
 #ifdef __cplusplus
+#include <glm/glm.hpp>
+
 extern "C"
 {
 #else
@@ -25,6 +27,9 @@ bool transformDecompose(const Mat4* matrix, Transform* outTransform);
 
 #ifdef __cplusplus
 };
+
+void transformCompose(const Transform* transform, glm::mat4* outMatrix);
+bool transformDecompose(const glm::mat4* matrix, Transform* outTransform);
 #endif //__cplusplus  
 
 #endif //TRANSFORM_H

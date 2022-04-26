@@ -2,19 +2,23 @@
 #include "systems/renderSystem.h"
 
 #include <gl/gl3w.h>
+#include <glm/glm.hpp>
 
 #include "ecs/ecSystem.h"
 #include "ecs/ectColumn.h"
+#include "ecs/object.h"
 #include "ecs/pointerMap.h"
 #include "ecs/sceneManager.h"
 #include "components/component.h"
 #include "components/entity.h"
 #include "components/spriteComponent.h"
+#include "components/cameraComponent.h"
 #include "render/mesh.h"
 #include "render/shader.h"
 #include "render/shaderSrc.h"
 #include "render/texture.h"
 #include "render/texMan.h"
+#include "util/atomics.h"
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -89,18 +93,32 @@ void renderSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, 
     uint32_t numSprites = getNumComponents(columns, SpriteComponent);
     const Entity* entities = getComponentsConst(columns, Entity);
     const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
-    Mat4 transform;
+    const CameraComponent* cameras = getComponentsConst(columns, CameraComponent);
+    uint32_t numCameras = getNumComponents(columns, CameraComponent);
+    glm::mat4 transform;
+    glm::mat4 vp(1);
     uint32_t parent;
-    
     register Renderer* renderer = (Renderer*)self->state;
     
+    for(uint32_t i = 0; i < numCameras; ++i)
+    {
+        if(!(atomicLoad32(&cameras[i].self.flags) & OBJECT_FLAG_DISABLED))
+        {
+            parent = pointerMapGet(map, cameras[i].self.parent);
+            transformCompose(&entities[parent].transform, &transform);
+            vp = AS(glm::mat4, cameras[i].projection) * glm::inverse(transform);
+            break;
+        }
+    }
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+    
     for(uint32_t i = 0; i < numSprites; ++i)
     {
         parent = pointerMapGet(map, spriteComponents[i].self.parent);
         transformCompose(&entities[parent].transform, &transform);
-        shaderUniformMat4(0, &transform);
+        transform = vp * transform;
+        shaderUniformMat4(0, (Mat4*)&transform);
         shaderUniform4f(1, spriteComponents[i].tint);
         shaderUniform1i(2, spriteComponents[i].texture);
     

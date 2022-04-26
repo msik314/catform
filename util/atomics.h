@@ -65,7 +65,7 @@ extern "C"
 static inline bool compareAndSwap128(volatile void *ptr, void* expected, uint64_t desiredLow, uint64_t desiredHigh)
 {
     bool result = false;
-    uint64_t* e = expected;
+    uint64_t* e = (uint64_t*)expected;
     
     __asm__ volatile("lock cmpxchg16b %1"
         : "=@ccz"(result), "+m"(*(uint64_t*)ptr), "+a"(e[0]), "+d"(e[1])
@@ -158,7 +158,7 @@ static inline bool _cas64(volatile uint64_t* ptr, uint64_t* expected, uint64_t d
 
 static inline bool compareAndSwap128(volatile void *ptr, void* expected, uint64_t desiredLow, uint64_t desiredHigh)
 {
-    int64_t* e = expected;
+    int64_t* e = (int64_t*)expected;
     volatile int64_t* res = ptr;
     
     return (bool)_InterlockedCompareExchange128(res, desiredHigh, desiredLow, e);

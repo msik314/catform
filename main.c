@@ -15,6 +15,7 @@
 #include "util/globalDefs.h"
 #include "rpmalloc/rpmalloc.h"
 #include "core/window.h"
+#include "core/input.h"
 #include "ecs/sceneManager.h"
 #include "json/jsonData.h"
 #include "json/jsonReader.h"
@@ -37,6 +38,36 @@
 #define BLUE 0x00, 0x00, 0xff, 0xff
 #define GREEN 0x00, 0xff, 0x00, 0xff
 
+static void buildInput()
+{
+    Input* input = inputGetInstance();
+    InputPlayer player;
+    InputButton button = {};
+    InputAxis axis = {};
+    
+    inputPlayerCreate(&player);
+    player.inputSrc = CAT_INPUT_KEYBOARD;
+//     player.inputSrc = CAT_INPUT_GAMEPAD(0);
+    
+    axis.positive = CAT_INPUT_ACTION_KEY('D');
+    axis.negative = CAT_INPUT_ACTION_KEY('A');
+//     axis.positive = 0;
+//     axis.negative = CAT_INPUT_ACTION_NONE;
+    vectorAdd(InputAxis)(&player.axes, &axis);
+    
+    axis.positive = CAT_INPUT_ACTION_KEY('S');
+    axis.negative = CAT_INPUT_ACTION_KEY('W');
+//     axis.positive = 1;
+//     axis.negative = CAT_INPUT_ACTION_NONE;
+    vectorAdd(InputAxis)(&player.axes, &axis);
+    
+    button.src = CAT_INPUT_ACTION_KEY(' ');
+//     button.src = 0;
+    vectorAdd(InputButton)(&player.buttons, &button);
+    
+    vectorAdd(InputPlayer)(&input->players, &player);
+}
+
 int32_t main(int argc, char** argv)
 {
     ptrdiff_t pathLen;
@@ -44,6 +75,7 @@ int32_t main(int argc, char** argv)
     void* linBuffer;
     
     Window window;
+    Input* input = inputGetInstance();
     ResourceMap* resourceMap = resourceMapGetInstance();
     JsonData data;
     
@@ -77,6 +109,8 @@ int32_t main(int argc, char** argv)
     window.height = 720;
     window.monitor = -1;
     
+    inputCreate(input);
+    
     windowCreate(&window, "Catform");
     gl3wInit();
     
@@ -87,16 +121,29 @@ int32_t main(int argc, char** argv)
     sceneManagerLoadScene(sceneMan, &data);
     jsonDataDestroy(&data);
     
+    buildInput();
+    
     while(!windowShouldClose(&window))
     {
-        glfwPollEvents();
+        inputPoll(input, window.window);
         sceneManagerFrame(sceneMan, 0.016f);
+        
+        printf
+        (
+            "%.2f, %.2f, %d %d %d\n",
+            (double)inputGetAxis(input, 0, 0),
+            (double)inputGetAxis(input, 0, 1),
+            inputGetButton(input, 0, 0),
+            inputGetButtonDown(input, 0, 0),
+            inputGetButtonUp(input, 0, 0)
+        );
         
         windowSwapBuffers(&window);
     }
     
     resourceMapDestroy(resourceMap);
     sceneManagerDestroy(sceneMan);
+    inputDestroy(input);
     windowDestroy(&window);
     glfwTerminate();
     

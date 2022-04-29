@@ -21,3 +21,8 @@ VECTOR_IMPL(Job)
 #include "json/jsonData.h"
 VECTOR_IMPL(JsonValue)
 VECTOR_IMPL(JsonObject)
+
+#include "core/input.h"
+VECTOR_IMPL(InputButton)
+VECTOR_IMPL(InputAxis)
+VECTOR_IMPL(InputPlayer)

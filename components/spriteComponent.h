@@ -1,5 +1,4 @@
-#ifndef SPRITE_COMPONENT
-#define SPRITE_COMPONENT
+#ifndef SPRITE_COMPONENT_H
 
 #include "containers/collection.h"
 #include "containers/mwQueue.h"
@@ -33,4 +32,4 @@ ECTCOLUMN_DECL(SpriteComponent)
 };
 #endif //__cplusplus  
 
-#endif //SPRITE_COMPONENT
+#endif //SPRITE_COMPONENT_H

@@ -1,5 +1,5 @@
-#ifndef CAMERA_COMPONENT
-#define CAMERA_COMPONENT
+#ifndef CAMERA_COMPONENT_H
+#define CAMERA_COMPONENT_H
 
 #include "containers/collection.h"
 #include "containers/mwQueue.h"
@@ -29,4 +29,4 @@ ECTCOLUMN_DECL(CameraComponent)
 };
 #endif //__cplusplus
 
-#endif //CAMERA_COMPONENT
+#endif //CAMERA_COMPONENT_H

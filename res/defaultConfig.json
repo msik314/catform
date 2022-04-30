@@ -1,0 +1,29 @@
+{
+    "input":[
+        {
+            "source":-1,
+            "buttons":[-74, -75, -76, -59, -256],
+            "axes":[[-68, -65],[-83, -87]]
+        },
+        {
+            "source":0,
+            "buttons":[0, 2, 5, 4, 7],
+            "axes":[[0, null],[1, null]]
+        },
+        {
+            "source":1,
+            "buttons":[0, 2, 5, 4, 7],
+            "axes":[[0, null],[1, null]]
+        },
+        {
+            "source":2,
+            "buttons":[0, 2, 5, 4, 7],
+            "axes":[[0, null],[1, null]]
+        },
+        {
+            "source":3,
+            "buttons":[0, 2, 5, 4, 7],
+            "axes":[[0, null],[1, null]]
+        }
+    ]
+}

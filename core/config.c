@@ -94,12 +94,41 @@ int32_t configLoadInput(const JsonData* config)
     return CAT_SUCCESS;
 }
 
-static int32_t configSavePlayer(const JsonData* data, const JsonObject* parent)
+static int32_t configSavePlayer(const InputPlayer* player, JsonData* config, uint32_t parent)
 {
+    uint32_t playerObject = jsonDataArrayAddObject(config, parent);
+    uint32_t arrayObject;
+    uint32_t axisObject;
     
+    jsonDataAddInt(config, playerObject, jsonKey("source"), player->inputSrc);
+    arrayObject = jsonDataAddArray(config, playerObject, jsonKey("buttons"));
+    for(uint32_t i = 0; i < player->buttons.size; ++i)
+    {
+        jsonDataArrayAddInt(config, arrayObject, player->buttons.data[i].src);
+    }
+    
+    arrayObject = jsonDataAddArray(config, playerObject, jsonKey("axes"));
+    for(uint32_t i = 0; i < player->axes.size; ++i)
+    {
+        axisObject = jsonDataArrayAddArray(config, arrayObject);
+        jsonDataArrayAddInt(config, axisObject, player->axes.data[i].positive);
+        jsonDataArrayAddInt(config, axisObject, player->axes.data[i].negative);
+    }
+    
+    return CAT_SUCCESS;
 }
 
 int32_t configSaveInput(JsonData* config)
 {
+    Input* input = inputGetInstance();
+    uint32_t array = jsonDataAddArray(config, JSON_DATA_ROOT_INDEX, jsonKey("input"));
+    register int32_t res;
+    
+    for(uint32_t i = 0; i < input->players.size; ++i)
+    {
+        res = configSavePlayer(&input->players.data[i], config, array);
+        if(res < CAT_SUCCESS) return res;
+    }
+    
     return CAT_SUCCESS;
 }

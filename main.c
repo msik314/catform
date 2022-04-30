@@ -20,6 +20,7 @@
 #include "ecs/sceneManager.h"
 #include "json/jsonData.h"
 #include "json/jsonReader.h"
+#include "json/jsonWriter.h"
 #include "systems/systems.h"
 #include "systems/entitySystem.h"
 #include "systems/cameraSystem.h"
@@ -82,6 +83,10 @@ int32_t main(int argc, char** argv)
     
     inputCreate(input);
     
+    jsonLoadf(&data, "res/config.json");
+    configLoadInput(&data);
+    jsonDataDestroy(&data);
+    
     windowCreate(&window, "Catform");
     gl3wInit();
     
@@ -90,10 +95,6 @@ int32_t main(int argc, char** argv)
     
     jsonLoadf(&data, "res/test.cat");
     sceneManagerLoadScene(sceneMan, &data);
-    jsonDataDestroy(&data);
-    
-    jsonLoadf(&data, "res/config.json");
-    configLoadInput(&data);
     jsonDataDestroy(&data);
     
     while(!windowShouldClose(&window))
@@ -116,8 +117,14 @@ int32_t main(int argc, char** argv)
     
     resourceMapDestroy(resourceMap);
     sceneManagerDestroy(sceneMan);
-    inputDestroy(input);
     windowDestroy(&window);
+    
+    jsonDataCreate(&data);
+    configSaveInput(&data);
+    jsonWritef(&data, "res/config.json");
+    jsonDataDestroy(&data);
+    
+    inputDestroy(input);
     glfwTerminate();
     
     linCleanup();

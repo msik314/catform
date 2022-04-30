@@ -408,31 +408,41 @@ void jsonDataAddValue(JsonData* data, uint32_t parent, Tag name, JsonValue value
 
 void jsonDataAddBool(JsonData* data, uint32_t parent, Tag name, bool value)
 {
-    JsonValue val = {value, JSON_TYPE_BOOL};
+    JsonValue val;
+    val.type = JSON_TYPE_BOOL;
+    val.boolValue = value;
     jsonDataAddValuePtr(data, parent, name, &val);
 }
 
 void jsonDataAddInt(JsonData* data, uint32_t parent, Tag name, int32_t value)
 {
-    JsonValue val = {value, JSON_TYPE_INT};
+    JsonValue val;
+    val.type = JSON_TYPE_INT;
+    val.intValue = value;
     jsonDataAddValuePtr(data, parent, name, &val);
 }
 
 void jsonDataAddReal(JsonData* data, uint32_t parent, Tag name, double value)
 {
-    JsonValue val = {value, JSON_TYPE_REAL};
+    JsonValue val;
+    val.type = JSON_TYPE_REAL;
+    val.realValue = value;
     jsonDataAddValuePtr(data, parent, name, &val);
 }
 
 void jsonDataAddString(JsonData* data, uint32_t parent, Tag name, const char* value)
 {
-    JsonValue val = {value, JSON_TYPE_STRING};
+    JsonValue val;
+    val.type = JSON_TYPE_STRING;
+    val.stringValue = (char*)value;
     jsonDataAddValuePtr(data, parent, name, &val);
 }
 
 void jsonDataAddNull(JsonData* data, uint32_t parent, Tag name)
 {
-    JsonValue val = {0, JSON_TYPE_NULL};
+    JsonValue val;
+    val.type = JSON_TYPE_NULL;
+    val.stringValue = NULL;
     jsonDataAddValuePtr(data, parent, name, &val);
 }
 
@@ -535,31 +545,41 @@ void jsonDataArrayAddValue(JsonData* data, uint32_t parentArray, JsonValue value
 
 void jsonDataArrayAddBool(JsonData* data, uint32_t parentArray, bool value)
 {
-    JsonValue val = {value, JSON_TYPE_BOOL};
+    JsonValue val;
+    val.type = JSON_TYPE_BOOL;
+    val.boolValue = value;
     jsonDataArrayAddValuePtr(data, parentArray, &val);
 }
 
 void jsonDataArrayAddInt(JsonData* data, uint32_t parentArray, int32_t value)
 {
-    JsonValue val = {value, JSON_TYPE_INT};
+    JsonValue val;
+    val.type = JSON_TYPE_INT;
+    val.intValue = value;
     jsonDataArrayAddValuePtr(data, parentArray, &val);
 }
 
 void jsonDataArrayAddReal(JsonData* data, uint32_t parentArray, double value)
 {
-    JsonValue val = {value, JSON_TYPE_REAL};
+    JsonValue val;
+    val.type = JSON_TYPE_REAL;
+    val.realValue = value;
     jsonDataArrayAddValuePtr(data, parentArray, &val);
 }
 
 void jsonDataArrayAddString(JsonData* data, uint32_t parentArray, const char* value)
 {
-    JsonValue val = {value, JSON_TYPE_STRING};
+    JsonValue val;
+    val.type = JSON_TYPE_STRING;
+    val.stringValue = (char*)value;
     jsonDataArrayAddValuePtr(data, parentArray, &val);
 }
 
 void jsonDataArrayAddNull(JsonData* data, uint32_t parentArray)
 {
-    JsonValue val = {0, JSON_TYPE_NULL};
+    JsonValue val;
+    val.type = JSON_TYPE_NULL;
+    val.stringValue = NULL;
     jsonDataArrayAddValuePtr(data, parentArray, &val);
 }
 

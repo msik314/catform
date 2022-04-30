@@ -16,6 +16,7 @@
 #include "rpmalloc/rpmalloc.h"
 #include "core/window.h"
 #include "core/input.h"
+#include "core/config.h"
 #include "ecs/sceneManager.h"
 #include "json/jsonData.h"
 #include "json/jsonReader.h"
@@ -37,36 +38,6 @@
 #define LINALLOC_SIZE 1048576
 #define BLUE 0x00, 0x00, 0xff, 0xff
 #define GREEN 0x00, 0xff, 0x00, 0xff
-
-static void buildInput()
-{
-    Input* input = inputGetInstance();
-    InputPlayer player;
-    InputButton button = {};
-    InputAxis axis = {};
-    
-    inputPlayerCreate(&player);
-    player.inputSrc = CAT_INPUT_KEYBOARD;
-//     player.inputSrc = CAT_INPUT_GAMEPAD(0);
-    
-    axis.positive = CAT_INPUT_ACTION_KEY('D');
-    axis.negative = CAT_INPUT_ACTION_KEY('A');
-//     axis.positive = 0;
-//     axis.negative = CAT_INPUT_ACTION_NONE;
-    vectorAdd(InputAxis)(&player.axes, &axis);
-    
-    axis.positive = CAT_INPUT_ACTION_KEY('S');
-    axis.negative = CAT_INPUT_ACTION_KEY('W');
-//     axis.positive = 1;
-//     axis.negative = CAT_INPUT_ACTION_NONE;
-    vectorAdd(InputAxis)(&player.axes, &axis);
-    
-    button.src = CAT_INPUT_ACTION_KEY(' ');
-//     button.src = 0;
-    vectorAdd(InputButton)(&player.buttons, &button);
-    
-    vectorAdd(InputPlayer)(&input->players, &player);
-}
 
 int32_t main(int argc, char** argv)
 {
@@ -121,7 +92,9 @@ int32_t main(int argc, char** argv)
     sceneManagerLoadScene(sceneMan, &data);
     jsonDataDestroy(&data);
     
-    buildInput();
+    jsonLoadf(&data, "res/config.json");
+    configLoadInput(&data);
+    jsonDataDestroy(&data);
     
     while(!windowShouldClose(&window))
     {
@@ -134,8 +107,8 @@ int32_t main(int argc, char** argv)
             (double)inputGetAxis(input, 0, 0),
             (double)inputGetAxis(input, 0, 1),
             inputGetButton(input, 0, 0),
-            inputGetButtonDown(input, 0, 0),
-            inputGetButtonUp(input, 0, 0)
+            inputGetButton(input, 0, 1),
+            inputGetButton(input, 0, 2)
         );
         
         windowSwapBuffers(&window);

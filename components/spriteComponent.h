@@ -1,4 +1,5 @@
 #ifndef SPRITE_COMPONENT_H
+#define SPRITE_COMPONENT_H
 
 #include "containers/collection.h"
 #include "containers/mwQueue.h"

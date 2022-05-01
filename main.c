@@ -26,6 +26,7 @@
 #include "systems/cameraSystem.h"
 #include "systems/spriteSystem.h"
 #include "systems/renderSystem.h"
+#include "systems/playerSystem.h"
 #include "util/linalloc.h"
 #include "util/resourceMap.h"
 
@@ -72,9 +73,10 @@ int32_t main(int argc, char** argv)
     
     sceneManagerCreate(sceneMan, 1);
     sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity), true);
+    sceneManagerRegisterSystem(sceneMan, &RENDER_SYSTEM);
+    sceneManagerRegisterColumnSys(sceneMan, &PLAYER_SYSTEM, COMPONENT(PlayerComponent), false);
     sceneManagerRegisterColumnSys(sceneMan, &CAMERA_SYSTEM, COMPONENT(CameraComponent), false);
     sceneManagerRegisterColumnSys(sceneMan, &SPRITE_SYSTEM, COMPONENT(SpriteComponent), false);
-    sceneManagerRegisterSystem(sceneMan, &RENDER_SYSTEM);
     glfwInit();
     
     window.width = 1280;
@@ -101,16 +103,6 @@ int32_t main(int argc, char** argv)
     {
         inputPoll(input, window.window);
         sceneManagerFrame(sceneMan, 0.016f);
-        
-        printf
-        (
-            "%.2f, %.2f, %d %d %d\n",
-            (double)inputGetAxis(input, 0, 0),
-            (double)inputGetAxis(input, 0, 1),
-            inputGetButton(input, 0, 0),
-            inputGetButton(input, 0, 1),
-            inputGetButton(input, 0, 2)
-        );
         
         windowSwapBuffers(&window);
     }

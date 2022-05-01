@@ -23,6 +23,10 @@ extern "C"
 #define CAT_BUTTON_PRESSED 1
 #define CAT_BUTTON_DOWN 2
 
+#define CAT_INVALID_PLAYER 0xffffffff
+#define CAT_INVALID_BUTTON 0xffffffff
+#define CAT_INVALID_AXIS 0xffffffff
+
 typedef struct
 {
     int16_t src;

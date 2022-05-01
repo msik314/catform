@@ -20,3 +20,6 @@ COLLECTION_IMPL(SpriteComponent);
 
 #include "components/cameraComponent.h"
 COLLECTION_IMPL(CameraComponent);
+
+#include "components/playerComponent.h"
+COLLECTION_IMPL(PlayerComponent);

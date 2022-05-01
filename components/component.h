@@ -13,6 +13,7 @@ extern "C"
 typedef enum ComponentTypes
 {
     COMPONENT(Entity),
+    COMPONENT(PlayerComponent),
     COMPONENT(CameraComponent),
     COMPONENT(SpriteComponent),
     

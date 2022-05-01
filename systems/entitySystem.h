@@ -12,6 +12,20 @@ extern "C"
 #include <stdbool.h>
 #endif //__cplusplus
 
+typedef struct
+{
+    Vec2 delta;
+    ObjectID parent;
+}
+EntityMove;
+
+typedef struct
+{
+    uint32_t numUpdates;
+    EntityMove updates[];
+}
+EntityMoveFlags;
+
 void entitySysInit(ECSystem* self);
 void entitySysDestroy(ECSystem* self);
 

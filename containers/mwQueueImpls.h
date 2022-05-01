@@ -20,3 +20,6 @@ MWQUEUE_IMPL(SpriteComponent);
 
 #include "components/cameraComponent.h"
 MWQUEUE_IMPL(CameraComponent);
+
+#include "components/playerComponent.h"
+MWQUEUE_IMPL(PlayerComponent);

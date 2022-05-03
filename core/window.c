@@ -57,6 +57,7 @@ void windowCreate(Window* window, const char* title)
         glWin = glfwCreateWindow(window->width, window->height, title, monitor, NULL);
     }
     glfwMakeContextCurrent(glWin);
+    glfwSwapInterval(window->vsync ? 1 : 0);
     window->window = glWin;
 }
 

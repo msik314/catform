@@ -27,6 +27,7 @@
 #include "systems/spriteSystem.h"
 #include "systems/renderSystem.h"
 #include "systems/playerSystem.h"
+#include "systems/aabbSystem.h"
 #include "util/linalloc.h"
 #include "util/resourceMap.h"
 
@@ -51,6 +52,9 @@ int32_t main(int argc, char** argv)
     Input* input = inputGetInstance();
     ResourceMap* resourceMap = resourceMapGetInstance();
     JsonData data;
+    
+    double currentTime;
+    double lastTime;
     
     pathLen = strrchr(argv[0], '/') - argv[0];
     if(pathLen < 0) pathLen = strrchr(argv[0], '\\') - argv[0];
@@ -77,11 +81,13 @@ int32_t main(int argc, char** argv)
     sceneManagerRegisterColumnSys(sceneMan, &PLAYER_SYSTEM, COMPONENT(PlayerComponent), false);
     sceneManagerRegisterColumnSys(sceneMan, &CAMERA_SYSTEM, COMPONENT(CameraComponent), false);
     sceneManagerRegisterColumnSys(sceneMan, &SPRITE_SYSTEM, COMPONENT(SpriteComponent), false);
+    sceneManagerRegisterColumnSys(sceneMan, &AABB_SYSTEM, COMPONENT(AabbComponent), false);
     glfwInit();
     
     window.width = 1280;
     window.height = 720;
     window.monitor = -1;
+    window.vsync = true;
     
     inputCreate(input);
     
@@ -99,12 +105,22 @@ int32_t main(int argc, char** argv)
     sceneManagerLoadScene(sceneMan, &data);
     jsonDataDestroy(&data);
     
+    currentTime = 0;
+    lastTime = -1.0/60;
+    glfwSetTime(0);
+    
     while(!windowShouldClose(&window))
     {
+        currentTime = glfwGetTime();
         inputPoll(input, window.window);
-        sceneManagerFrame(sceneMan, 0.016f);
+        sceneManagerFrame(sceneMan, (float)(currentTime - lastTime));
+        
+#ifndef NDEBUG
+        printf("%f\n", currentTime - lastTime);
+#endif //NDEBUG
         
         windowSwapBuffers(&window);
+        lastTime = currentTime;
     }
     
     resourceMapDestroy(resourceMap);

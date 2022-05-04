@@ -12,3 +12,6 @@ HASHMAP_IMPL_EQ(Tag, Texture, tagEq)
 
 #include "util/resourceMap.h"
 HASHMAP_IMPL_EQ(Tag, ValPath, tagEq)
+
+#include "systems/aabbSystem.h"
+HASHMAP_IMPL(ObjectID, EdgePair)

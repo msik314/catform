@@ -23,3 +23,6 @@ MWQUEUE_IMPL(CameraComponent);
 
 #include "components/playerComponent.h"
 MWQUEUE_IMPL(PlayerComponent);
+
+#include "components/aabbComponent.h"
+MWQUEUE_IMPL(AabbComponent);

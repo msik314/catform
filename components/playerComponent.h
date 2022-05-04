@@ -5,9 +5,6 @@
 #include "containers/mwQueue.h"
 #include "ecs/object.h"
 #include "ecs/ectColumn.h"
-#include "core/tag.h"
-#include "render/texture.h"
-#include "cmath/cvec.h"
 
 #ifdef __cplusplus
 extern "C"

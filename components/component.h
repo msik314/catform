@@ -16,6 +16,7 @@ typedef enum ComponentTypes
     COMPONENT(PlayerComponent),
     COMPONENT(CameraComponent),
     COMPONENT(SpriteComponent),
+    COMPONENT(AabbComponent),
     
     NUM_COMPONENT_TYPES
 }

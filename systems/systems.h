@@ -17,6 +17,7 @@ typedef enum SystemType
     SYSTEM(PlayerComponent),
     SYSTEM(CameraComponent),
     SYSTEM(SpriteComponent),
+    SYSTEM(AabbComponent),
     
     NUM_SYSTEMS
 }

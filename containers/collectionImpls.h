@@ -23,3 +23,11 @@ COLLECTION_IMPL(CameraComponent);
 
 #include "components/playerComponent.h"
 COLLECTION_IMPL(PlayerComponent);
+
+#include "components/aabbComponent.h"
+COLLECTION_IMPL(AabbComponent);
+
+#include "systems/aabbSystem.h"
+COLLECTION_IMPL(Collision)
+COLLECTION_IMPL(CollisionEdge)
+COLLECTION_IMPL(CollisionHalf)

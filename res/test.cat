@@ -3,7 +3,8 @@
     [
         [
             {"id":0, "parent":null, "flags":0, "name":"camera", "transform":{"rotation":[0, 0, 0, 1], "position":[0, 0, 0], "scale":[1, 1, 1]}},
-            {"id":2, "parent":null, "flags":0, "name":"sprite", "transform":{"rotation":[0, 0, 0, 1], "position":[0, 0, 0], "scale":[10, 10, 1]}}
+            {"id":2, "parent":null, "flags":0, "name":"sprite", "transform":{"rotation":[0, 0, 0, 1], "position":[0, 0, 0], "scale":[10, 10, 1]}},
+            {"id":6, "parent":null, "flags":0, "name":"floor", "transform":{"rotation":[0, 0, 1, 0], "position":[0, -50, 0], "scale":[100, 10, 1]}}
         ],
         [
             {"id":4, "parent":2, "flags":0, "moveSpeed":16.0, "controller1":0, "controller2":1, "vertical":1, "horizontal":0}
@@ -13,9 +14,11 @@
         ],
         [
             {"id":1, "parent":2, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
+            {"id":7, "parent":6, "flags":0, "name":"upArrow", "tint":[1, 1, 1, 1]}
         ],
         [
-            {"id":5, "parent":2, "flags":0, "offset":[0, 0], "size":[-0.5, -0.5]}
+            {"id":5, "parent":2, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]},
+            {"id":8, "parent":6, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]}
         ]
     ],
     "resources":{"upArrow":"res/test.png"}

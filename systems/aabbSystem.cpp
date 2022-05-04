@@ -168,8 +168,8 @@ static inline Vec4 transformAabb(const AabbComponent* aabb, const Entity* entiti
     glm::mat4 transform;
     glm::mat4 parentTransform;
     glm::vec4 center = {aabb->offset.x, aabb->offset.y, 0, 1};
-    glm::vec4 topRight = center + glm::vec4(aabb->size.x, aabb->size.x / 2, 0, 0); 
-    glm::vec4 botRight = center + glm::vec4(aabb->size.x, -aabb->size.y / 2, 0, 0);
+    glm::vec4 topRight = center + glm::vec4(aabb->size.x, aabb->size.y, 0, 0); 
+    glm::vec4 botRight = center + glm::vec4(aabb->size.x, -aabb->size.y, 0, 0);
     
     register uint32_t idx = pointerMapGet(map, aabb->self.parent);
     transformCompose(&entities[idx].transform, &transform);
@@ -182,8 +182,8 @@ static inline Vec4 transformAabb(const AabbComponent* aabb, const Entity* entiti
     }
     
     center = transform * center;
-    topRight = transform * topRight;
-    botRight = transform * botRight;
+    topRight = transform * topRight - center;
+    botRight = transform * botRight - center;
     
     topRight.x = ABS(topRight.x);
     topRight.y = ABS(topRight.y);
@@ -219,13 +219,13 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
     register float ydiff;
     register float yOverlap;
     cache->openPool.size = 0;
+    cache->collisions.size = 0;
     
     for(uint32_t i = 0; i < numAabbs; ++i)
     {
         transformedBox = transformAabb(&aabbs[i], entities, map);
         if(hashmapGet(ObjectID, EdgePair)(&cache->pairMap, &aabbs[i].self.id, &pair))
         {
-            transformedBox.z /= 2;
             cache->edges.data[pair.start].position.x = transformedBox.x - transformedBox.z;
             cache->edges.data[pair.start].position.y = transformedBox.y;
             cache->edges.data[pair.start].size = transformedBox.w;
@@ -238,7 +238,6 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
         }
         else
         {
-            transformedBox.z /= 2;
             edge.position.x = transformedBox.x - transformedBox.z;
             edge.position.y = transformedBox.y;
             edge.size = transformedBox.w;
@@ -277,7 +276,7 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
             col.entity2 = aabbs[idx].self.parent;
             col.aabb2 = aabb2;
             
-            for(int32_t j = cache->openPool.size - 1; j > 0; --j)
+            for(int32_t j = cache->openPool.size - 1; j >= 0; --j)
             {
                 idx = cache->openPool.data[j].index;
                 aabb1 = cache->edges.data[idx].aabb;
@@ -316,7 +315,7 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
             }
         }
     }
-    
+
     aabbFlags = (AabbFlags*)linalloc(OFFSETOF(AabbFlags, collisions) + cache->collisions.size * sizeof(Collision));
     memcpy(&aabbFlags->collisions, cache->collisions.data, cache->collisions.size * sizeof(Collision));
     *flags = aabbFlags;

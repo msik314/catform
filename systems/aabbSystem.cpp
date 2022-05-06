@@ -291,7 +291,7 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
                 ydiff = y2 - y1;
                 yOverlap = size1 + size2 - ABS(ydiff);
                 
-                if(yOverlap > 0)
+                if(yOverlap >= 0)
                 {
                     x1 = cache->edges.data[idx].position.x;
                     idx = pointerMapGet(map, aabb1);

@@ -293,11 +293,11 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
                 
                 if(yOverlap > 0)
                 {
+                    x1 = cache->edges.data[idx].position.x;
                     idx = pointerMapGet(map, aabb1);
                     col.entity1 = aabbs[idx].self.parent;
-                    col.aabb1 = aabb1;
+                    col.aabb1 = aabb1;                    
                     
-                    x1 = cache->edges.data[idx].position.x;
                     xOverlap = x2 - x1;
                     if(xOverlap < yOverlap)
                     {
@@ -306,7 +306,7 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
                     }
                     else
                     {
-                        col.normal = (Vec2){0, (float)SIGN(ydiff)};
+                        col.normal = (Vec2){0, (float)-SIGN(ydiff)};
                         col.overlap = yOverlap;
                     }
                     
@@ -317,6 +317,7 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
     }
 
     aabbFlags = (AabbFlags*)linalloc(OFFSETOF(AabbFlags, collisions) + cache->collisions.size * sizeof(Collision));
+    aabbFlags->numCollisions = cache->collisions.size;
     memcpy(&aabbFlags->collisions, cache->collisions.data, cache->collisions.size * sizeof(Collision));
     *flags = aabbFlags;
 }

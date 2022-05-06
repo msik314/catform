@@ -66,7 +66,7 @@ void deserializeEntities(ECTColumn* colGen, const JsonData* data, uint32_t colum
     const char* stringVal;
     ObjectID translatedId;
     
-    Entity e;
+    Entity e = {};
     
     array = jsonDataGetChildConst(data, column);
     

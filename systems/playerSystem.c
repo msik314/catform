@@ -14,6 +14,8 @@
 #include "util/linalloc.h"
 #include "util/utilMacros.h"
 
+#define PLAYER_GRAVITY 9.8f
+
 const JobDependency PLAYER_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(PlayerComponent), PHASE_PARENT)}};
 const JobDependency PLAYER_COPY_DEPS = {1, {MAKE_JOB_ID(SYSTEM(PlayerComponent), PHASE_UPDATE)}};
 

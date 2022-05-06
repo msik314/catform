@@ -10,6 +10,7 @@
 #include "core/tag.h"
 #include "components/entity.h"
 #include "systems/systems.h"
+#include "systems/aabbSystem.h"
 #include "util/atomics.h"
 
 const JobDependency ENTITY_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(Entity), PHASE_PARENT)}};
@@ -61,18 +62,49 @@ void entityCompReady(ECSystem* self, ECTColumn* column)
 
 void entitySysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime){}
 
+static inline float vec2Dot(Vec2 lhs, Vec2 rhs)
+{
+    return lhs.x * rhs.x + lhs.y * rhs.y;
+}
+
 void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, uint32_t numFlags, float deltaTime)
 {
     Entity* entities = (Entity*)column->components.data;
+    uint32_t numEntities = column->components.size;
     const EntityMoveFlags* playerFlags = (const EntityMoveFlags*)atomicLoadPtr(&flags[SYSTEM(PlayerComponent)]);
     const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
+    const AabbFlags* collisions = flags[SYSTEM(AabbComponent)];
+    Vec2 normals[numEntities];
+    float overlaps[numEntities];
+    register float amt;
     register uint32_t entityIdx;
+    
+    for(uint32_t i = 0; i < numEntities; ++i)
+    {
+        normals[i].x = 0.0f;
+        normals[i].y = 0.0f;
+        overlaps[i] = 0;
+    }
+    
+    for(uint32_t i = 0; i < collisions->numCollisions; ++i)
+    {
+        entityIdx = pointerMapGet(map, collisions->collisions[i].entity1);
+        normals[entityIdx].x += collisions->collisions[i].normal.x;
+        normals[entityIdx].y += collisions->collisions[i].normal.y;
+        overlaps[entityIdx] += collisions->collisions[i].overlap;
+        
+        entityIdx = pointerMapGet(map, collisions->collisions[i].entity2);
+        normals[entityIdx].x -= collisions->collisions[i].normal.x;
+        normals[entityIdx].y -= collisions->collisions[i].normal.y;
+        overlaps[entityIdx] += collisions->collisions[i].overlap;
+    }
     
     for(uint32_t i = 0; i < playerFlags->numUpdates; ++i)
     {
         entityIdx = pointerMapGet(map, playerFlags->updates[i].parent);
-        entities[entityIdx].transform.position.x += playerFlags->updates[i].delta.x;
-        entities[entityIdx].transform.position.y += playerFlags->updates[i].delta.y;
+        amt = vec2Dot(normals[entityIdx], playerFlags->updates[i].delta);
+        entities[entityIdx].transform.position.x += playerFlags->updates[i].delta.x + (amt + overlaps[entityIdx]) * normals[entityIdx].x;
+        entities[entityIdx].transform.position.y += playerFlags->updates[i].delta.y + (amt + overlaps[entityIdx]) * normals[entityIdx].y;
     }
 }
 

@@ -7,7 +7,7 @@
             {"id":6, "parent":null, "flags":0, "name":"floor", "transform":{"rotation":[0, 0, 1, 0], "position":[0, -50, 0], "scale":[100, 10, 1]}}
         ],
         [
-            {"id":4, "parent":2, "flags":0, "moveSpeed":16.0, "controller1":0, "controller2":1, "vertical":1, "horizontal":0}
+            {"id":4, "parent":2, "flags":0, "moveSpeed":32.0, "controller1":0, "controller2":1, "vertical":1, "horizontal":0}
         ],
         [
             {"id":3, "parent":0, "flags":0, "projection":[0.008333333333333333, 0, 0, 0, 0, 0.014814814814814815, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1]}

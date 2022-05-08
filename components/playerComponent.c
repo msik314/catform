@@ -39,7 +39,7 @@ void serializePlayerComponents(const ECTColumn* colGen, JsonData* data, uint32_t
         jsonDataAddInt(data, objIdx, jsonKey("horizontal"), (int32_t)playerComponents->components.data[i].horizontal);
         jsonDataAddInt(data, objIdx, jsonKey("jumpBtn"), (int32_t)playerComponents->components.data[i].jumpBtn);
         jsonDataAddVec2(data, objIdx, jsonKey("velocity"), playerComponents->components.data[i].velocity);
-        jsonDataAddBool(data, objIdx, jsonKey("grounded"), playerComponents->components.data[i].grounded);
+        jsonDataAddBool(data, objIdx, jsonKey("colliding"), (int32_t)playerComponents->components.data[i].colliding);
     }
 }
 
@@ -51,7 +51,6 @@ void deserializePlayerComponents(ECTColumn* colGen, const JsonData* data, uint32
     double realVal;
     uint32_t index;
     int32_t intVal;
-    bool boolVal;
     ObjectID translatedId;
     
     PlayerComponent pc;
@@ -98,8 +97,8 @@ void deserializePlayerComponents(ECTColumn* colGen, const JsonData* data, uint32
         pc.jumpBtn = (uint32_t)intVal;
         jsonObjectGetKey(component, "velocity", &index);
         pc.velocity = jsonDataGetVec2(data, index);
-        jsonObjectGetKey(component, "grounded", &boolVal);
-        pc.grounded = boolVal;
+        jsonObjectGetKey(component, "colliding", &intVal);
+        pc.colliding = intVal;
         
         hashmapGet(ObjectID, ObjectID)(refMap, &pc.self.id, &translatedId);
         pc.self.id = translatedId;

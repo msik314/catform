@@ -4,7 +4,9 @@
         [
             {"id":0, "parent":null, "flags":0, "name":"camera", "transform":{"rotation":[0, 0, 0, 1], "position":[0, 0, 0], "scale":[1, 1, 1]}},
             {"id":2, "parent":null, "flags":0, "name":"sprite", "transform":{"rotation":[0, 0, 0, 1], "position":[0, -32, 0], "scale":[10, 10, 1]}},
-            {"id":6, "parent":null, "flags":0, "name":"floor", "transform":{"rotation":[0, 0, 1, 0], "position":[0, -50, 0], "scale":[100, 10, 1]}}
+            {"id":6, "parent":null, "flags":0, "name":"floor", "transform":{"rotation":[0, 0, 1, 0], "position":[0, -50, 0], "scale":[100, 10, 1]}},
+            {"id":9, "parent":null, "flags":0, "name":"leftWall", "transform":{"rotation":[0, 0, 0.70710678, 0.70710678], "position":[-52.5, -30, 0], "scale":[50, 5, 1]}},
+            {"id":10, "parent":null, "flags":0, "name":"rightWall", "transform":{"rotation":[0, 0, -0.70710678, 0.70710678], "position":[52.5, -30, 0], "scale":[50, 5, 1]}}
         ],
         [
             {
@@ -21,7 +23,7 @@
                 "horizontal":0,
                 "jumpBtn": 0,
                 "velocity":[0, 0],
-                "grounded": false
+                "colliding": 0
             }
         ],
         [
@@ -29,11 +31,15 @@
         ],
         [
             {"id":1, "parent":2, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
-            {"id":7, "parent":6, "flags":0, "name":"upArrow", "tint":[1, 1, 1, 1]}
+            {"id":7, "parent":6, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
+            {"id":11, "parent":9, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
+            {"id":12, "parent":10, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]}
         ],
         [
             {"id":5, "parent":2, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]},
-            {"id":8, "parent":6, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]}
+            {"id":8, "parent":6, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]},
+            {"id":13, "parent":9, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]},
+            {"id":14, "parent":10, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]}
         ]
     ],
     "resources":{"upArrow":"res/test.png"}

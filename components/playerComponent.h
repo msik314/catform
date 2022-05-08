@@ -7,6 +7,11 @@
 #include "ecs/ectColumn.h"
 #include "cmath/cvec.h"
 
+#define PLAYER_DIRECTION_UP 0x00000001
+#define PLAYER_DIRECTION_DOWN 0x00000002
+#define PLAYER_DIRECTION_LEFT 0x00000004
+#define PLAYER_DIRECTION_RIGHT 0x00000008
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -27,7 +32,7 @@ typedef struct
     uint32_t horizontal;
     uint32_t jumpBtn;
     Vec2 velocity;
-    bool grounded;
+    uint32_t colliding;
 }
 PlayerComponent;
 

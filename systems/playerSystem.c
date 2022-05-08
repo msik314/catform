@@ -106,7 +106,7 @@ void playerSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, 
         xInp = players[i].moveSpeed * CLAMP(xInp, -1, 1);
         dTarget = movement.x - xInp;
         
-        if(players[i].grounded)
+        if(players[i].colliding & PLAYER_DIRECTION_DOWN)
         {
             if(ABS(dTarget) <= players[i].groundAccel * deltaTime)
             {
@@ -148,28 +148,55 @@ void playerCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
     const PlayerMoveFlags* playerFlags = (const PlayerMoveFlags*)atomicLoadPtr(&flags[SYSTEM(PlayerComponent)]);
     const AabbFlags* aabbFlags = (const AabbFlags*)atomicLoadPtr(&flags[SYSTEM(AabbComponent)]);
     
+    register Vec2 normal;
+    
     for(uint32_t i = 0; i < numPlayers; ++i)
     {
-        players[i].grounded = false;
+        players[i].colliding = 0;
+        players[i].velocity = playerFlags->updates[i].velocity;
+        
         for(uint32_t j = 0; j < aabbFlags->numCollisions; ++j)
         {
-            if(players[i].self.parent == aabbFlags->collisions[j].entity1 && aabbFlags->collisions[j].normal.y >= COS_45)
+            if(players[i].self.parent == aabbFlags->collisions[j].entity1)
             {
-                players[i].grounded = true;
-                break;
+                normal = aabbFlags->collisions[j].normal;
             }
             
-            if(players[i].self.parent == aabbFlags->collisions[j].entity2 && -aabbFlags->collisions[j].normal.y >= COS_45)
+            else if(players[i].self.parent == aabbFlags->collisions[j].entity2)
             {
-                players[i].grounded = true;
-                break;
+                normal =  aabbFlags->collisions[j].normal;
+                normal.x *= -1;
+                normal.y *= -1;
+            }
+            
+            if(normal.y >= COS_45)
+            {
+                players[i].colliding |= PLAYER_DIRECTION_DOWN;
+            }
+            else if(-normal.y >= COS_45)
+            {
+                players[i].colliding |= PLAYER_DIRECTION_UP;
+            }
+            else if(normal.x >= COS_45)
+            {
+                players[i].colliding |= PLAYER_DIRECTION_LEFT;
+                players[i].velocity.x = MAX(players[i].velocity.x, 0.0f);
+            }
+            else if(-normal.x >= COS_45)
+            {
+                players[i].colliding |= PLAYER_DIRECTION_RIGHT;
+                players[i].velocity.x = MIN(players[i].velocity.x, 0.0f);
             }
         }
         
-        players[i].velocity = playerFlags->updates[i].velocity;
-        if(players[i].grounded)
+        
+        if(players[i].colliding & PLAYER_DIRECTION_DOWN)
         {
             players[i].velocity.y = MAX(players[i].velocity.y, 0.0f);
+        }
+        else if(players[i].colliding & PLAYER_DIRECTION_UP)
+        {
+            players[i].velocity.y = MIN(players[i].velocity.y, 0.0f);
         }
         else
         {

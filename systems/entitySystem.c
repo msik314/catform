@@ -11,6 +11,7 @@
 #include "components/entity.h"
 #include "systems/systems.h"
 #include "systems/aabbSystem.h"
+#include "systems/playerSystem.h"
 #include "util/atomics.h"
 
 const JobDependency ENTITY_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(Entity), PHASE_PARENT)}};
@@ -71,13 +72,14 @@ void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
 {
     Entity* entities = (Entity*)column->components.data;
     uint32_t numEntities = column->components.size;
-    const EntityMoveFlags* playerFlags = (const EntityMoveFlags*)atomicLoadPtr(&flags[SYSTEM(PlayerComponent)]);
+    const PlayerMoveFlags* playerFlags = (const PlayerMoveFlags*)atomicLoadPtr(&flags[SYSTEM(PlayerComponent)]);
     const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
     const AabbFlags* collisions = flags[SYSTEM(AabbComponent)];
     Vec2 normals[numEntities];
     float overlaps[numEntities];
     register float amt;
     register uint32_t entityIdx;
+    register Vec2 movement;
     
     for(uint32_t i = 0; i < numEntities; ++i)
     {
@@ -102,9 +104,12 @@ void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
     for(uint32_t i = 0; i < playerFlags->numUpdates; ++i)
     {
         entityIdx = pointerMapGet(map, playerFlags->updates[i].parent);
-        amt = vec2Dot(normals[entityIdx], playerFlags->updates[i].delta);
-        entities[entityIdx].transform.position.x += playerFlags->updates[i].delta.x + (amt + overlaps[entityIdx]) * normals[entityIdx].x;
-        entities[entityIdx].transform.position.y += playerFlags->updates[i].delta.y + (amt + overlaps[entityIdx]) * normals[entityIdx].y;
+        movement = playerFlags->updates[i].velocity;
+        movement.x *= deltaTime;
+        movement.y *= deltaTime;
+        amt = vec2Dot(normals[entityIdx], movement);
+        entities[entityIdx].transform.position.x += movement.x + (amt + overlaps[entityIdx]) * normals[entityIdx].x;
+        entities[entityIdx].transform.position.y += movement.y + (amt + overlaps[entityIdx]) * normals[entityIdx].y;
     }
 }
 

@@ -30,10 +30,14 @@ void serializePlayerComponents(const ECTColumn* colGen, JsonData* data, uint32_t
         }
         
         jsonDataAddReal(data, objIdx, jsonKey("moveSpeed"), playerComponents->components.data[i].moveSpeed);
+        jsonDataAddReal(data, objIdx, jsonKey("jumpSpeed"), playerComponents->components.data[i].jumpSpeed);
         jsonDataAddInt(data, objIdx, jsonKey("controller1"), (int32_t)playerComponents->components.data[i].controller1);
         jsonDataAddInt(data, objIdx, jsonKey("controller2"), (int32_t)playerComponents->components.data[i].controller2);
         jsonDataAddInt(data, objIdx, jsonKey("vertical"), (int32_t)playerComponents->components.data[i].vertical);
         jsonDataAddInt(data, objIdx, jsonKey("horizontal"), (int32_t)playerComponents->components.data[i].horizontal);
+        jsonDataAddInt(data, objIdx, jsonKey("jumpBtn"), (int32_t)playerComponents->components.data[i].jumpBtn);
+        jsonDataAddVec2(data, objIdx, jsonKey("velocity"), playerComponents->components.data[i].velocity);
+        jsonDataAddBool(data, objIdx, jsonKey("grounded"), playerComponents->components.data[i].grounded);
     }
 }
 
@@ -43,8 +47,9 @@ void deserializePlayerComponents(ECTColumn* colGen, const JsonData* data, uint32
     const JsonObject* array;
     const JsonObject* component;
     double realVal;
-    int32_t index;
+    uint32_t index;
     int32_t intVal;
+    bool boolVal;
     ObjectID translatedId;
     
     PlayerComponent pc;
@@ -73,6 +78,8 @@ void deserializePlayerComponents(ECTColumn* colGen, const JsonData* data, uint32
         
         jsonObjectGetKey(component, "moveSpeed", &realVal);
         pc.moveSpeed = (float)realVal;
+        jsonObjectGetKey(component, "jumpSpeed", &realVal);
+        pc.jumpSpeed = (float)realVal;
         jsonObjectGetKey(component, "controller1", &intVal);
         pc.controller1 = (uint32_t)intVal;
         jsonObjectGetKey(component, "controller2", &intVal);
@@ -81,6 +88,12 @@ void deserializePlayerComponents(ECTColumn* colGen, const JsonData* data, uint32
         pc.vertical = (uint32_t)intVal;
         jsonObjectGetKey(component, "horizontal", &intVal);
         pc.horizontal = (uint32_t)intVal;
+        jsonObjectGetKey(component, "jumpBtn", &intVal);
+        pc.jumpBtn = (uint32_t)intVal;
+        jsonObjectGetKey(component, "velocity", &index);
+        pc.velocity = jsonDataGetVec2(data, index);
+        jsonObjectGetKey(component, "grounded", &boolVal);
+        pc.grounded = boolVal;
         
         hashmapGet(ObjectID, ObjectID)(refMap, &pc.self.id, &translatedId);
         pc.self.id = translatedId;

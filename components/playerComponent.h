@@ -5,6 +5,7 @@
 #include "containers/mwQueue.h"
 #include "ecs/object.h"
 #include "ecs/ectColumn.h"
+#include "cmath/cvec.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -17,10 +18,14 @@ typedef struct
 {
     Object self;
     float moveSpeed;
+    float jumpSpeed;
     uint32_t controller1;
     uint32_t controller2;
     uint32_t vertical;
     uint32_t horizontal;
+    uint32_t jumpBtn;
+    Vec2 velocity;
+    bool grounded;
 }
 PlayerComponent;
 

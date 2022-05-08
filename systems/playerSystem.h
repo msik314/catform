@@ -12,6 +12,20 @@ extern "C"
 #include <stdbool.h>
 #endif //__cplusplus
 
+typedef struct
+{
+    Vec2 velocity;
+    ObjectID parent;
+}
+PlayerMove;
+
+typedef struct
+{
+    uint32_t numUpdates;
+    PlayerMove updates[];
+}
+PlayerMoveFlags;
+
 void playerSysInit(ECSystem* self);
 void playerSysDestroy(ECSystem* self);
 

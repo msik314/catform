@@ -31,6 +31,8 @@ void serializePlayerComponents(const ECTColumn* colGen, JsonData* data, uint32_t
         
         jsonDataAddReal(data, objIdx, jsonKey("moveSpeed"), playerComponents->components.data[i].moveSpeed);
         jsonDataAddReal(data, objIdx, jsonKey("jumpSpeed"), playerComponents->components.data[i].jumpSpeed);
+        jsonDataAddReal(data, objIdx, jsonKey("groundAccel"), playerComponents->components.data[i].groundAccel);
+        jsonDataAddReal(data, objIdx, jsonKey("airAccel"), playerComponents->components.data[i].airAccel);
         jsonDataAddInt(data, objIdx, jsonKey("controller1"), (int32_t)playerComponents->components.data[i].controller1);
         jsonDataAddInt(data, objIdx, jsonKey("controller2"), (int32_t)playerComponents->components.data[i].controller2);
         jsonDataAddInt(data, objIdx, jsonKey("vertical"), (int32_t)playerComponents->components.data[i].vertical);
@@ -80,6 +82,10 @@ void deserializePlayerComponents(ECTColumn* colGen, const JsonData* data, uint32
         pc.moveSpeed = (float)realVal;
         jsonObjectGetKey(component, "jumpSpeed", &realVal);
         pc.jumpSpeed = (float)realVal;
+        jsonObjectGetKey(component, "groundAccel", &realVal);
+        pc.groundAccel = (float)realVal;
+        jsonObjectGetKey(component, "airAccel", &realVal);
+        pc.airAccel = (float)realVal;
         jsonObjectGetKey(component, "controller1", &intVal);
         pc.controller1 = (uint32_t)intVal;
         jsonObjectGetKey(component, "controller2", &intVal);

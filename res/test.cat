@@ -13,6 +13,8 @@
                 "flags":0,
                 "moveSpeed":32.0,
                 "jumpSpeed": 19.79898987,
+                "groundAccel": 128.0,
+                "airAccel": 64.0,
                 "controller1":0,
                 "controller2":1,
                 "vertical":1,

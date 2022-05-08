@@ -19,6 +19,8 @@ typedef struct
     Object self;
     float moveSpeed;
     float jumpSpeed;
+    float groundAccel;
+    float airAccel;
     uint32_t controller1;
     uint32_t controller2;
     uint32_t vertical;

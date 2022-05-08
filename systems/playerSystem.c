@@ -72,6 +72,9 @@ void playerSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, 
     uint32_t flagIdx = 0;
     const Input* input = inputGetInstance();
     register Vec2 movement;
+    register float xInp;
+    register float dTarget;
+    register bool jumpInp;
     
     moveFlags->numUpdates = numPlayers;
     
@@ -83,37 +86,53 @@ void playerSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, 
             continue;
         }
         
-        movement.x = 0.0f;
-        movement.y = players[i].velocity.y;
+        movement = players[i].velocity;
+        
+        xInp = 0;
+        jumpInp = false;
         
         if(players[i].controller1 != CAT_INVALID_PLAYER)
         {
-            if(players[i].horizontal != CAT_INVALID_AXIS)
-            {
-                movement.x += inputGetAxis(input, players[i].controller1, players[i].horizontal);
-            }
-            
-            if(players[i].jumpBtn != CAT_INVALID_BUTTON && players[i].grounded && inputGetButtonDown(input, players[i].controller1, players[i].jumpBtn))
-            {
-                movement.y = players[i].jumpSpeed;
-            }
+            xInp += (players[i].horizontal != CAT_INVALID_AXIS) ? inputGetAxis(input, players[i].controller1, players[i].horizontal): 0.0f;
+            jumpInp |= players[i].jumpBtn != CAT_INVALID_BUTTON && inputGetButtonDown(input, players[i].controller1, players[i].jumpBtn);
         }
         
         if(players[i].controller2 != CAT_INVALID_PLAYER)
         {
-            if(players[i].horizontal != CAT_INVALID_AXIS)
-            {
-                movement.x += inputGetAxis(input, players[i].controller2, players[i].horizontal);
-            }
-            
-            if(players[i].jumpBtn != CAT_INVALID_BUTTON && players[i].grounded && inputGetButtonDown(input, players[i].controller2, players[i].jumpBtn))
-            {
-                movement.y = players[i].jumpSpeed;
-            }
+            xInp += (players[i].horizontal != CAT_INVALID_AXIS) ? inputGetAxis(input, players[i].controller2, players[i].horizontal): 0.0f;
+            jumpInp |= players[i].jumpBtn != CAT_INVALID_BUTTON && inputGetButtonDown(input, players[i].controller2, players[i].jumpBtn);
         }
         
-        movement.x = players[i].moveSpeed * CLAMP(movement.x, -1, 1);
+        xInp = players[i].moveSpeed * CLAMP(xInp, -1, 1);
+        dTarget = movement.x - xInp;
         
+        if(players[i].grounded)
+        {
+            if(ABS(dTarget) <= players[i].groundAccel * deltaTime)
+            {
+                movement.x = xInp;
+            }
+            else
+            {
+                movement.x -= SIGN(dTarget) * players[i].groundAccel * deltaTime;
+            }
+            
+            if(jumpInp)
+            {
+                movement.y += players[i].jumpSpeed;
+            }
+        }
+        else
+        {
+            if(ABS(dTarget) <= players[i].airAccel * deltaTime)
+            {
+                movement.x = xInp;
+            }
+            else
+            {
+                movement.x -= SIGN(dTarget) * players[i].airAccel * deltaTime;
+            }
+        }
         moveFlags->updates[i] = (PlayerMove){movement, players[i].self.parent};
         
         ++flagIdx;

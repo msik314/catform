@@ -3,7 +3,7 @@
     [
         [
             {"id":0, "parent":null, "flags":0, "name":"camera", "transform":{"rotation":[0, 0, 0, 1], "position":[0, 0, 0], "scale":[1, 1, 1]}},
-            {"id":2, "parent":null, "flags":0, "name":"sprite", "transform":{"rotation":[0, 0, 0, 1], "position":[0, 0, 0], "scale":[10, 10, 1]}},
+            {"id":2, "parent":null, "flags":0, "name":"sprite", "transform":{"rotation":[0, 0, 0, 1], "position":[0, -32, 0], "scale":[10, 10, 1]}},
             {"id":6, "parent":null, "flags":0, "name":"floor", "transform":{"rotation":[0, 0, 1, 0], "position":[0, -50, 0], "scale":[100, 10, 1]}}
         ],
         [
@@ -12,8 +12,8 @@
                 "parent":2,
                 "flags":0,
                 "moveSpeed":32.0,
-                "jumpSpeed": 19.79898987,
-                "groundAccel": 128.0,
+                "jumpSpeed": 43.3774134,
+                "groundAccel": 256.0,
                 "airAccel": 64.0,
                 "controller1":0,
                 "controller2":1,

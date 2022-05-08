@@ -115,9 +115,9 @@ int32_t main(int argc, char** argv)
         inputPoll(input, window.window);
         sceneManagerFrame(sceneMan, (float)(currentTime - lastTime));
         
-// #ifndef NDEBUG
-//         printf("%f\n", currentTime - lastTime);
-// #endif //NDEBUG
+#ifndef NDEBUG
+        printf("%f\n", currentTime - lastTime);
+#endif //NDEBUG
         
         windowSwapBuffers(&window);
         lastTime = currentTime;

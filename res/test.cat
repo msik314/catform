@@ -6,7 +6,9 @@
             {"id":2, "parent":null, "flags":0, "name":"sprite", "transform":{"rotation":[0, 0, 0, 1], "position":[0, -32, 0], "scale":[10, 10, 1]}},
             {"id":6, "parent":null, "flags":0, "name":"floor", "transform":{"rotation":[0, 0, 1, 0], "position":[0, -50, 0], "scale":[100, 10, 1]}},
             {"id":9, "parent":null, "flags":0, "name":"leftWall", "transform":{"rotation":[0, 0, 0.70710678, 0.70710678], "position":[-52.5, -30, 0], "scale":[50, 5, 1]}},
-            {"id":10, "parent":null, "flags":0, "name":"rightWall", "transform":{"rotation":[0, 0, -0.70710678, 0.70710678], "position":[52.5, -30, 0], "scale":[50, 5, 1]}}
+            {"id":10, "parent":null, "flags":0, "name":"rightWall", "transform":{"rotation":[0, 0, -0.70710678, 0.70710678], "position":[52.5, -30, 0], "scale":[50, 5, 1]}},
+            {"id":15, "parent":null, "flags":0, "name":"bullet", "transform":{"rotation":[0, 0, 0.70710678, 0.70710678], "position":[0, -32, 0], "scale":[5, 5, 1]}},
+            {"id":19, "parent":null, "flags":0, "name":"bullet", "transform":{"rotation":[0, 0, 0.70710678, 0.70710678], "position":[0, 20, 0], "scale":[5, 5, 1]}}
         ],
         [
             {
@@ -33,13 +35,21 @@
             {"id":1, "parent":2, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
             {"id":7, "parent":6, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
             {"id":11, "parent":9, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
-            {"id":12, "parent":10, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]}
+            {"id":12, "parent":10, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
+            {"id":16, "parent":15, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]},
+            {"id":21, "parent":19, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]}
         ],
         [
             {"id":5, "parent":2, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":1, "collisionMask":239},
             {"id":8, "parent":6, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":15, "collisionMask":255},
             {"id":13, "parent":9, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":15, "collisionMask":255},
-            {"id":14, "parent":10, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":15, "collisionMask":255}
+            {"id":14, "parent":10, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":15, "collisionMask":255},
+            {"id":18, "parent":15, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":16, "collisionMask":254},
+            {"id":22, "parent":19, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":16, "collisionMask":254}
+        ],
+        [
+            {"id":17, "parent":15, "flags":0, "velocity":[-32, 0], "gravity": -39.2, "fallDelay": 1.0,"damage": 0, "knockBack": 0, "lifeTime": 2.0},
+            {"id":20, "parent":19, "flags":0, "velocity":[-32, 0], "gravity": -39.2, "fallDelay": 1.0,"damage": 0, "knockBack": 0, "lifeTime": 2.0}
         ]
     ],
     "resources":{"upArrow":"res/test.png"}

@@ -17,13 +17,14 @@ typedef enum ComponentTypes
     COMPONENT(CameraComponent),
     COMPONENT(SpriteComponent),
     COMPONENT(AabbComponent),
+    COMPONENT(BulletComponent),
     
     NUM_COMPONENT_TYPES
 }
 ComponentType;
 
 #define getComponents(columns, type) ((type*)((columns)[COMPONENT(type)].components.data))
-#define getComponentsConst(column, type) ((const type*)((columns)[COMPONENT(type)].components.data))
+#define getComponentsConst(columns, type) ((const type*)((columns)[COMPONENT(type)].components.data))
 #define getNumComponents(columns, type) ((columns)[COMPONENT(type)].components.size)
 
 #ifdef __cplusplus

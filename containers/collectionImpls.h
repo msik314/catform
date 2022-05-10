@@ -31,3 +31,6 @@ COLLECTION_IMPL(AabbComponent);
 COLLECTION_IMPL(Collision)
 COLLECTION_IMPL(CollisionEdge)
 COLLECTION_IMPL(CollisionHalf)
+
+#include "components/bulletComponent.h"
+COLLECTION_IMPL(BulletComponent);

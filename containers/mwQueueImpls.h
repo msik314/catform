@@ -26,3 +26,6 @@ MWQUEUE_IMPL(PlayerComponent);
 
 #include "components/aabbComponent.h"
 MWQUEUE_IMPL(AabbComponent);
+
+#include "components/bulletComponent.h"
+MWQUEUE_IMPL(BulletComponent);

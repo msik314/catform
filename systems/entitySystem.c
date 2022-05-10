@@ -81,6 +81,7 @@ void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
     Entity* entities = (Entity*)column->components.data;
     uint32_t numEntities = column->components.size;
     const PlayerMoveFlags* playerFlags = (const PlayerMoveFlags*)atomicLoadPtr(&flags[SYSTEM(PlayerComponent)]);
+    const EntityMoveFlags* bulletFlags = (const EntityMoveFlags*)atomicLoadPtr(&flags[SYSTEM(BulletComponent)]);
     const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
     const AabbFlags* collisions = flags[SYSTEM(AabbComponent)];
     Vec2 normals[numEntities];
@@ -118,6 +119,13 @@ void entityCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
         amt = vec2Dot(normals[entityIdx], movement);
         entities[entityIdx].transform.position.x += movement.x + (amt + overlaps[entityIdx]) * normals[entityIdx].x;
         entities[entityIdx].transform.position.y += movement.y + (amt + overlaps[entityIdx]) * normals[entityIdx].y;
+    }
+    
+    for(uint32_t i = 0; i < bulletFlags->numUpdates; ++i)
+    {
+        entityIdx = pointerMapGet(map, bulletFlags->updates[i].parent);
+        entities[entityIdx].transform.position.x += bulletFlags->updates[i].delta.x;
+        entities[entityIdx].transform.position.y += bulletFlags->updates[i].delta.y;
     }
 }
 

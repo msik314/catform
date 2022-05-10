@@ -28,6 +28,7 @@
 #include "systems/renderSystem.h"
 #include "systems/playerSystem.h"
 #include "systems/aabbSystem.h"
+#include "systems/bulletSystem.h"
 #include "util/linalloc.h"
 #include "util/resourceMap.h"
 
@@ -82,6 +83,7 @@ int32_t main(int argc, char** argv)
     sceneManagerRegisterColumnSys(sceneMan, &CAMERA_SYSTEM, COMPONENT(CameraComponent), false);
     sceneManagerRegisterColumnSys(sceneMan, &SPRITE_SYSTEM, COMPONENT(SpriteComponent), false);
     sceneManagerRegisterColumnSys(sceneMan, &AABB_SYSTEM, COMPONENT(AabbComponent), false);
+    sceneManagerRegisterColumnSys(sceneMan, &BULLET_SYSTEM, COMPONENT(BulletComponent), true);
     glfwInit();
     
     window.width = 1280;

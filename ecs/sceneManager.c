@@ -89,7 +89,7 @@ void sceneManagerRegisterColumnSys(SceneManager* sceneManager, const ECSystem* s
     
     if(writesFlags)
     {
-        id = MAKE_JOB_ID(sceneManager->systems.size, PHASE_COPY);
+        id = MAKE_JOB_ID(column, PHASE_COPY);
         vectorAdd(uint32_t)(&sceneManager->entityMarkDeps, &id);
     }
     

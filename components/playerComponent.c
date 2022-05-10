@@ -39,7 +39,7 @@ void serializePlayerComponents(const ECTColumn* colGen, JsonData* data, uint32_t
         jsonDataAddInt(data, objIdx, jsonKey("horizontal"), (int32_t)playerComponents->components.data[i].horizontal);
         jsonDataAddInt(data, objIdx, jsonKey("jumpBtn"), (int32_t)playerComponents->components.data[i].jumpBtn);
         jsonDataAddVec2(data, objIdx, jsonKey("velocity"), playerComponents->components.data[i].velocity);
-        jsonDataAddBool(data, objIdx, jsonKey("colliding"), (int32_t)playerComponents->components.data[i].colliding);
+        jsonDataAddInt(data, objIdx, jsonKey("colliding"), (int32_t)playerComponents->components.data[i].colliding);
     }
 }
 

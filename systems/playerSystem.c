@@ -18,7 +18,7 @@
 #define COS_45 0.760406f
 
 const JobDependency PLAYER_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(PlayerComponent), PHASE_PARENT)}};
-const JobDependency PLAYER_COPY_DEPS = {1, {MAKE_JOB_ID(SYSTEM(PlayerComponent), PHASE_UPDATE)}};
+const JobDependency PLAYER_COPY_DEPS = {2, {MAKE_JOB_ID(SYSTEM(PlayerComponent), PHASE_UPDATE), MAKE_JOB_ID(SYSTEM(AabbComponent), PHASE_UPDATE)}};
 
 const JobDependency PLAYER_DESTROY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(PlayerComponent), PHASE_MARK)}};
 

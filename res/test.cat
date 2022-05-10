@@ -36,10 +36,10 @@
             {"id":12, "parent":10, "flags":0, "texName":"upArrow", "tint":[1, 1, 1, 1]}
         ],
         [
-            {"id":5, "parent":2, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]},
-            {"id":8, "parent":6, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]},
-            {"id":13, "parent":9, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]},
-            {"id":14, "parent":10, "flags":0, "offset":[0, 0], "size":[0.5, 0.5]}
+            {"id":5, "parent":2, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":1, "collisionMask":239},
+            {"id":8, "parent":6, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":15, "collisionMask":255},
+            {"id":13, "parent":9, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":15, "collisionMask":255},
+            {"id":14, "parent":10, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":15, "collisionMask":255}
         ]
     ],
     "resources":{"upArrow":"res/test.png"}

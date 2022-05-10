@@ -32,6 +32,8 @@ void serializeAabbComponents(const ECTColumn* colGen, JsonData* data, uint32_t c
         
         jsonDataAddVec2(data, objIdx, jsonKey("offset"), aabbComponents->components.data[i].offset);
         jsonDataAddVec2(data, objIdx, jsonKey("size"), aabbComponents->components.data[i].size);
+        jsonDataAddInt(data, objIdx, jsonKey("layerMask"), (int32_t)aabbComponents->components.data[i].layerMask);
+        jsonDataAddInt(data, objIdx, jsonKey("collisionMask"), (int32_t)aabbComponents->components.data[i].collisionMask);
     }
 }
 
@@ -73,6 +75,10 @@ void deserializeAabbComponents(ECTColumn* colGen, const JsonData* data, uint32_t
         aabb.offset = jsonDataGetVec2(data, objIdx);
         jsonObjectGetKey(component, "size", &objIdx);
         aabb.size = jsonDataGetVec2(data, objIdx);
+        jsonObjectGetKey(component, "layerMask", &intVal);
+        aabb.layerMask = (uint32_t)intVal;
+        jsonObjectGetKey(component, "collisionMask", &intVal);
+        aabb.collisionMask = (uint32_t)intVal;
         
         hashmapGet(ObjectID, ObjectID)(refMap, &aabb.self.id, &translatedId);
         aabb.self.id = translatedId;

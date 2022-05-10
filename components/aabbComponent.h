@@ -18,6 +18,8 @@ typedef struct
     Object self;
     Vec2 offset;
     Vec2 size;
+    uint32_t layerMask;
+    uint32_t collisionMask;
 }
 AabbComponent;
 

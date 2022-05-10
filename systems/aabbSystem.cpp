@@ -207,6 +207,10 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
     AabbFlags* aabbFlags;
     Vec4 transformedBox;
     register uint32_t idx;
+    register uint32_t layer1;
+    register uint32_t mask1;
+    register uint32_t layer2;
+    register uint32_t mask2;
     register ObjectID aabb1;
     register ObjectID aabb2;
     register float size1;
@@ -275,6 +279,8 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
             idx = pointerMapGet(map, aabb2);
             col.entity2 = aabbs[idx].self.parent;
             col.aabb2 = aabb2;
+            layer2 = aabbs[idx].layerMask;
+            mask2 = aabbs[idx].collisionMask;
             
             for(int32_t j = cache->openPool.size - 1; j >= 0; --j)
             {
@@ -295,6 +301,11 @@ void aabbSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, ui
                 {
                     x1 = cache->edges.data[idx].position.x;
                     idx = pointerMapGet(map, aabb1);
+                    layer1 = aabbs[idx].layerMask;
+                    mask1 = aabbs[idx].collisionMask;
+                    
+                    if(!((layer2 & mask1) && (layer1 & mask2))) continue;
+                    
                     col.entity1 = aabbs[idx].self.parent;
                     col.aabb1 = aabb1;                    
                     

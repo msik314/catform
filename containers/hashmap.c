@@ -17,9 +17,8 @@
 static inline uint32_t probeDistance(uint32_t pos, uint32_t hash, uint32_t capacityMask)
 {
     if(hash == EMPTY_HASH) return 0;
-    pos &= capacityMask;
     hash &= capacityMask;
-    return pos - hash;
+    return (pos - hash) & capacityMask;
 }
 
 #define hashmapInit(K, V) hashmapInit ## K ## V
@@ -107,7 +106,7 @@ static inline int32_t hashmapInsert(K, V)(Hashmap(K, V)* map, uint32_t* hash, K*
             map->map[pos].value = *value;\
             return 1;\
         }\
-        existingDistance = probeDistance(pos, *hash, mask);\
+        existingDistance = probeDistance(pos, map->map[pos].hash, mask);\
         \
         if(distance > existingDistance)\
         {\

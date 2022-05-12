@@ -8,7 +8,7 @@
             {"id":9, "parent":null, "flags":0, "name":"leftWall", "transform":{"rotation":[0, 0, 0.70710678, 0.70710678], "position":[-52.5, -30, 0], "scale":[50, 5, 1]}},
             {"id":10, "parent":null, "flags":0, "name":"rightWall", "transform":{"rotation":[0, 0, -0.70710678, 0.70710678], "position":[52.5, -30, 0], "scale":[50, 5, 1]}},
             {"id":15, "parent":null, "flags":0, "name":"bullet", "transform":{"rotation":[0, 0, 0.70710678, 0.70710678], "position":[0, -32, 0], "scale":[5, 5, 1]}},
-            {"id":19, "parent":null, "flags":0, "name":"bullet", "transform":{"rotation":[0, 0, 0.70710678, 0.70710678], "position":[0, 20, 0], "scale":[5, 5, 1]}}
+            {"id":19, "parent":null, "flags":0, "name":"bullet2", "transform":{"rotation":[0, 0, 0.70710678, 0.70710678], "position":[0, 20, 0], "scale":[5, 5, 1]}}
         ],
         [
             {

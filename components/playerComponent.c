@@ -33,13 +33,16 @@ void serializePlayerComponents(const ECTColumn* colGen, JsonData* data, uint32_t
         jsonDataAddReal(data, objIdx, jsonKey("jumpSpeed"), playerComponents->components.data[i].jumpSpeed);
         jsonDataAddReal(data, objIdx, jsonKey("groundAccel"), playerComponents->components.data[i].groundAccel);
         jsonDataAddReal(data, objIdx, jsonKey("airAccel"), playerComponents->components.data[i].airAccel);
+        jsonDataAddInt(data, objIdx, jsonKey("playerNum"), (int32_t)playerComponents->components.data[i].playerNum);
         jsonDataAddInt(data, objIdx, jsonKey("controller1"), (int32_t)playerComponents->components.data[i].controller1);
         jsonDataAddInt(data, objIdx, jsonKey("controller2"), (int32_t)playerComponents->components.data[i].controller2);
         jsonDataAddInt(data, objIdx, jsonKey("vertical"), (int32_t)playerComponents->components.data[i].vertical);
         jsonDataAddInt(data, objIdx, jsonKey("horizontal"), (int32_t)playerComponents->components.data[i].horizontal);
         jsonDataAddInt(data, objIdx, jsonKey("jumpBtn"), (int32_t)playerComponents->components.data[i].jumpBtn);
+        jsonDataAddInt(data, objIdx, jsonKey("shootBtn"), (int32_t)playerComponents->components.data[i].shootBtn);
         jsonDataAddVec2(data, objIdx, jsonKey("velocity"), playerComponents->components.data[i].velocity);
         jsonDataAddInt(data, objIdx, jsonKey("colliding"), (int32_t)playerComponents->components.data[i].colliding);
+        jsonDataAddReal(data, objIdx, jsonKey("lastDirection"), playerComponents->components.data[i].lastDirection);
     }
 }
 
@@ -85,6 +88,8 @@ void deserializePlayerComponents(ECTColumn* colGen, const JsonData* data, uint32
         pc.groundAccel = (float)realVal;
         jsonObjectGetKey(component, "airAccel", &realVal);
         pc.airAccel = (float)realVal;
+        jsonObjectGetKey(component, "playerNum", &intVal);
+        pc.playerNum = (uint32_t)intVal;
         jsonObjectGetKey(component, "controller1", &intVal);
         pc.controller1 = (uint32_t)intVal;
         jsonObjectGetKey(component, "controller2", &intVal);
@@ -95,10 +100,14 @@ void deserializePlayerComponents(ECTColumn* colGen, const JsonData* data, uint32
         pc.horizontal = (uint32_t)intVal;
         jsonObjectGetKey(component, "jumpBtn", &intVal);
         pc.jumpBtn = (uint32_t)intVal;
+        jsonObjectGetKey(component, "shootBtn", &intVal);
+        pc.shootBtn = (uint32_t)intVal;
         jsonObjectGetKey(component, "velocity", &index);
         pc.velocity = jsonDataGetVec2(data, index);
         jsonObjectGetKey(component, "colliding", &intVal);
         pc.colliding = intVal;
+        jsonObjectGetKey(component, "lastDirection", &realVal);
+        pc.lastDirection = (float)realVal;
         
         hashmapGet(ObjectID, ObjectID)(refMap, &pc.self.id, &translatedId);
         pc.self.id = translatedId;

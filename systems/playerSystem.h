@@ -16,6 +16,7 @@ typedef struct
 {
     Vec2 velocity;
     ObjectID parent;
+    float input;
 }
 PlayerMove;
 

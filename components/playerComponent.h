@@ -26,13 +26,16 @@ typedef struct
     float jumpSpeed;
     float groundAccel;
     float airAccel;
+    uint32_t playerNum;
     uint32_t controller1;
     uint32_t controller2;
     uint32_t vertical;
     uint32_t horizontal;
     uint32_t jumpBtn;
+    uint32_t shootBtn;
     Vec2 velocity;
     uint32_t colliding;
+    float lastDirection;
 }
 PlayerComponent;
 

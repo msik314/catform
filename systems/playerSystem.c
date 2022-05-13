@@ -1,8 +1,12 @@
 #include "util/globalDefs.h"
 #include "systems/playerSystem.h"
 
+#include <math.h>
+#include "cmath/cVec.h"
 #include "core/input.h"
+#include "core/tag.h"
 #include "ecs/ecSystem.h"
+#include "ecs/ecTable.h"
 #include "ecs/ectColumn.h"
 #include "ecs/sceneManager.h"
 #include "ecs/pointerMap.h"
@@ -13,9 +17,20 @@
 #include "util/atomics.h"
 #include "util/linalloc.h"
 #include "util/utilMacros.h"
+#include "components/entity.h"
+#include "components/aabbComponent.h"
+#include "components/bulletComponent.h"
+#include "components/spriteComponent.h"
 
 #define PLAYER_GRAVITY -39.2f
-#define COS_45 0.760406f
+#define COS_45 0.7071067811f
+#define BULLET_SPAWN_OFFSET 3
+#define BULLET_GRAVITY -39.2f
+#define BULLET_SPEED 64.0f
+#define BULLET_FALL_DELAY 0.5f
+#define BULLET_LIFETIME 2.0f
+#define BULLET_DAMAGE 0.0f
+#define BULLET_KNOCKBACK 0.0f
 
 const JobDependency PLAYER_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(PlayerComponent), PHASE_PARENT)}};
 const JobDependency PLAYER_COPY_DEPS = {2, {MAKE_JOB_ID(SYSTEM(PlayerComponent), PHASE_UPDATE), MAKE_JOB_ID(SYSTEM(AabbComponent), PHASE_UPDATE)}};
@@ -64,17 +79,79 @@ void playerCompReady(ECSystem* self, ECTColumn* column)
     }
 }
 
+static inline void spawnBullet(Vec2 position, Vec2 direction, float lastDirection, uint32_t playerNum)
+{
+    Entity e = {};
+    BulletComponent bullet = 
+    {
+        {INVALID_OBJECT, 0, INVALID_OBJECT}, 
+        {},
+        BULLET_GRAVITY,
+        BULLET_FALL_DELAY,
+        BULLET_DAMAGE,
+        BULLET_KNOCKBACK,
+        BULLET_LIFETIME
+    };
+    
+    AabbComponent aabb = {{INVALID_OBJECT, 0, INVALID_OBJECT}, {}, {0.5f, 0.5f}, 16 << playerNum, ~(1 << playerNum)};
+    SpriteComponent sprite = {{INVALID_OBJECT, 0, INVALID_OBJECT}, 0xffffffff, {}, {1, 1, 1, 1}};
+    ECTable* table = sceneManagerGetTable(sceneManagerGetInstance());
+    ObjectID eid;
+    ObjectID tmp;
+    register float dirLen;
+    
+    if(ABS(direction.x) < 0.5 && ABS(direction.y) < 0.5)
+    {
+        if(ABS(lastDirection) < 0.5) return;
+        
+        direction.x = lastDirection;
+    }
+    
+    tagSet(&e.name, "bullet");
+    e.transform.rotation = (Quat){0, 0, 0, 1};
+    
+    e.transform.position.x = position.x;
+    e.transform.position.y = position.y;
+    e.transform.scale = (Vec3){1, 1, 1};
+    
+    direction.x = direction.x > 0.5 - direction.x < -0.5;
+    direction.y = direction.y > 0.5 - direction.y < -0.5;
+    dirLen = sqrtf(direction.x * direction.x + direction.y * direction.y);
+    
+    direction.x /= dirLen;
+    direction.y /= dirLen;
+    
+    e.transform.position.x += BULLET_SPAWN_OFFSET * direction.x;
+    e.transform.position.y += BULLET_SPAWN_OFFSET * direction.y;
+    ecTableAdd(table, Entity, &e, INVALID_OBJECT, &eid);
+    
+    bullet.velocity.x = BULLET_SPEED * direction.x;
+    bullet.velocity.y = BULLET_SPEED * direction.y;
+    ecTableAdd(table, BulletComponent, &bullet, eid, &tmp);
+    
+    ecTableAdd(table, AabbComponent, &aabb, eid, &tmp);
+    
+    tagSet(&sprite.texName, "bullet");
+    ecTableAdd(table, SpriteComponent, &sprite, eid, &tmp);
+}
+
 void playerSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime)
 {
     const PlayerComponent* players = getComponentsConst(columns, PlayerComponent);
     uint32_t numPlayers = getNumComponents(columns, PlayerComponent);
     PlayerMoveFlags* moveFlags = linalloc(OFFSETOF(PlayerMoveFlags, updates) + numPlayers * sizeof(PlayerMove));
+    const Entity* entities = getComponentsConst(columns, Entity);
+    const PointerMap* map = sceneManagerGetMap(sceneManagerGetInstance());
     uint32_t flagIdx = 0;
     const Input* input = inputGetInstance();
     register Vec2 movement;
     register float xInp;
+    register float yInp;
     register float dTarget;
+    register uint32_t idx;
     register bool jumpInp;
+    register bool shootInp;
+    register float lastDirection;
     
     moveFlags->numUpdates = numPlayers;
     
@@ -89,21 +166,38 @@ void playerSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, 
         movement = players[i].velocity;
         
         xInp = 0;
+        yInp = 0;
         jumpInp = false;
+        shootInp = false;
         
         if(players[i].controller1 != CAT_INVALID_PLAYER)
         {
             xInp += (players[i].horizontal != CAT_INVALID_AXIS) ? inputGetAxis(input, players[i].controller1, players[i].horizontal): 0.0f;
+            yInp -= (players[i].vertical != CAT_INVALID_AXIS) ? inputGetAxis(input, players[i].controller1, players[i].vertical): 0.0f;
             jumpInp |= players[i].jumpBtn != CAT_INVALID_BUTTON && inputGetButtonDown(input, players[i].controller1, players[i].jumpBtn);
+            shootInp |= players[i].shootBtn != CAT_INVALID_BUTTON && inputGetButtonDown(input, players[i].controller1, players[i].shootBtn);
         }
         
         if(players[i].controller2 != CAT_INVALID_PLAYER)
         {
             xInp += (players[i].horizontal != CAT_INVALID_AXIS) ? inputGetAxis(input, players[i].controller2, players[i].horizontal): 0.0f;
+            yInp -= (players[i].vertical != CAT_INVALID_AXIS) ? inputGetAxis(input, players[i].controller2, players[i].vertical): 0.0f;
             jumpInp |= players[i].jumpBtn != CAT_INVALID_BUTTON && inputGetButtonDown(input, players[i].controller2, players[i].jumpBtn);
+            shootInp |= players[i].shootBtn != CAT_INVALID_BUTTON && inputGetButtonDown(input, players[i].controller2, players[i].shootBtn);
         }
         
-        xInp = players[i].moveSpeed * CLAMP(xInp, -1, 1);
+        xInp = CLAMP(xInp, -1, 1);
+        lastDirection = xInp;
+        
+        yInp = CLAMP(yInp, -1, 1);
+        
+        if(shootInp)
+        {
+            idx = pointerMapGet(map, players[i].self.parent);
+            spawnBullet((Vec2){entities[idx].transform.position.x, entities[idx].transform.position.y}, (Vec2){xInp, yInp}, lastDirection, players[i].playerNum);
+        }
+        
+        xInp *= players[i].moveSpeed;
         dTarget = movement.x - xInp;
         
         if(players[i].colliding & PLAYER_DIRECTION_DOWN)
@@ -133,7 +227,8 @@ void playerSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, 
                 movement.x -= SIGN(dTarget) * players[i].airAccel * deltaTime;
             }
         }
-        moveFlags->updates[i] = (PlayerMove){movement, players[i].self.parent};
+        
+        moveFlags->updates[flagIdx] = (PlayerMove){movement, players[i].self.parent, lastDirection};
         
         ++flagIdx;
     }
@@ -147,13 +242,23 @@ void playerCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
     uint32_t numPlayers = column->components.size;
     const PlayerMoveFlags* playerFlags = (const PlayerMoveFlags*)atomicLoadPtr(&flags[SYSTEM(PlayerComponent)]);
     const AabbFlags* aabbFlags = (const AabbFlags*)atomicLoadPtr(&flags[SYSTEM(AabbComponent)]);
+    uint32_t flagIdx = 0;
     
     register Vec2 normal;
     
     for(uint32_t i = 0; i < numPlayers; ++i)
     {
+        if(atomicLoad32(&players[i].self.flags) & OBJECT_FLAG_DISABLED)
+        {
+            continue;
+        }
+        
         players[i].colliding = 0;
-        players[i].velocity = playerFlags->updates[i].velocity;
+        players[i].velocity = playerFlags->updates[flagIdx].velocity;
+        if(ABS(playerFlags->updates[flagIdx].input) > 0.5f)
+        {
+            players[i].lastDirection = playerFlags->updates[flagIdx].input;
+        }
         
         for(uint32_t j = 0; j < aabbFlags->numCollisions; ++j)
         {
@@ -202,6 +307,8 @@ void playerCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
         {
             players[i].velocity.y += PLAYER_GRAVITY * deltaTime;
         }
+        
+        ++flagIdx;
     }
 }
 

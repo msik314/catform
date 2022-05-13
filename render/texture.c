@@ -37,7 +37,7 @@ int32_t textureBankCreate(TextureBank* textureBank, uint32_t id, uint32_t width,
     
     glGenTextures(1, &textureBank->texture);
     glActiveTexture(GL_TEXTURE0 + id);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, textureBank->texture);  
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureBank->texture);
     
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -123,5 +123,5 @@ bool textureBankFull(TextureBank* textureBank)
 
 void textureBankBindSlot(TextureBank* textureBank, uint32_t slot)
 {
-    shaderUniform1u(slot, textureBank->id);
+    shaderUniform1i(slot, (int32_t)textureBank->id);
 }

@@ -24,7 +24,7 @@ const char* FRAG_SRC =
 
 "layout(location = 1)uniform vec4 tint;"
 "layout(location = 2)uniform int texIn;"
-"layout(location = 4)uniform sampler2DArray textureBanks[8];" 
+"layout(location = 4)uniform sampler2DArray textureBanks[8];"
 
 "vec4 texIndex(in sampler2DArray tex, in vec2 xy, in int index)"
 "{"

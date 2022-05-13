@@ -143,7 +143,7 @@ Texture texManTryLoadStrong(TexMan* texMan, Tag name, const void* data, uint32_t
         return CAT_INVALID_TEXTURE;
     }
     
-    textureBankBindSlot(&texMan->fallback, CAT_MIN_TEXTURE_SLOT + slotIdx);
+    textureBankBindSlot(&texMan->loadedBanks[slotIdx].bank, CAT_MIN_TEXTURE_SLOT + slotIdx);
     tex = textureBankAlloc(&texMan->loadedBanks[slotIdx].bank, data, width * height);
     
     if(tex != CAT_INVALID_TEXTURE)
@@ -208,7 +208,7 @@ Texture texManLoad(TexMan* texMan, Tag name, const void* data, uint32_t width, u
     {
         return CAT_INVALID_TEXTURE;
     }
-    textureBankBindSlot(&texMan->fallback, CAT_MIN_TEXTURE_SLOT + slotIdx);
+    textureBankBindSlot(&texMan->loadedBanks[slotIdx].bank, CAT_MIN_TEXTURE_SLOT + slotIdx);
     tex = textureBankAlloc(&texMan->loadedBanks[slotIdx].bank, data, width * height);
     
     if(tex != CAT_INVALID_TEXTURE)

@@ -194,7 +194,13 @@ void playerSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, 
         if(shootInp)
         {
             idx = pointerMapGet(map, players[i].self.parent);
-            spawnBullet((Vec2){entities[idx].transform.position.x, entities[idx].transform.position.y}, (Vec2){xInp, yInp}, lastDirection, players[i].playerNum);
+            spawnBullet
+            (
+                (Vec2){entities[idx].transform.position.x, entities[idx].transform.position.y},
+                (Vec2){xInp, yInp},
+                players[i].lastDirection,
+                players[i].playerNum
+            );
         }
         
         xInp *= players[i].moveSpeed;

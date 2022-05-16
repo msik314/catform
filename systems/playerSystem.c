@@ -114,8 +114,8 @@ static inline void spawnBullet(Vec2 position, Vec2 direction, float lastDirectio
     e.transform.position.y = position.y;
     e.transform.scale = (Vec3){1, 1, 1};
     
-    direction.x = direction.x > 0.5 - direction.x < -0.5;
-    direction.y = direction.y > 0.5 - direction.y < -0.5;
+    direction.x = (direction.x > 0.5f) - (direction.x < -0.5f);
+    direction.y = (direction.y > 0.5f) - (direction.y < -0.5f);
     dirLen = sqrtf(direction.x * direction.x + direction.y * direction.y);
     
     direction.x /= dirLen;

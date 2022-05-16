@@ -12,14 +12,14 @@ extern "C"
 #include <stdbool.h>
 #endif //__cplusplus  
 
-typedef union _PointerMapEntry
+typedef struct _PointerMapEntry
 {
     struct
     ALIGNED(8,{
         uint32_t value;
         uint32_t checkID;
     });
-    union _PointerMapEntry* next;
+    struct _PointerMapEntry* next;
 }
 PointerMapEntry;
 

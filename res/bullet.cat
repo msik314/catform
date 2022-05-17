@@ -1,0 +1,19 @@
+{
+    "table":[
+        [
+            {"id":0, "parent":null, "flags":0, "name":"camera", "transform":{"rotation":[0, 0, 0, 1], "position":[0, 0, 0], "scale":[1, 1, 1]}},
+        ],
+        [],
+        [],
+        [
+            {"id":1, "parent":0, "flags":0, "texName":"bullet", "tint":[1, 1, 0, 1]},
+        ],
+        [
+            {"id":2, "parent":0, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":240, "collisionMask":15}
+        ],
+        [
+            {"id": 3, "parent": 0,"flags": 0, "velocity":[0, 0], "gravity": -39.2, "fallDelay": 0.5, "damage": 0, "knockback": 0, "lifetime": 2.0}
+        ]
+    ],
+    "resources":{"bullet":"res/bullet.png"}
+}

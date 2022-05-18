@@ -268,6 +268,7 @@ void playerCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
         
         for(uint32_t j = 0; j < aabbFlags->numCollisions; ++j)
         {
+            normal = (Vec2){};
             if(players[i].self.parent == aabbFlags->collisions[j].entity1)
             {
                 normal = aabbFlags->collisions[j].normal;
@@ -300,17 +301,16 @@ void playerCompCopy(ECSystem* self, ECTColumn* column, const SysFlags* flags, ui
             }
         }
         
-        
         if(players[i].colliding & PLAYER_DIRECTION_DOWN)
         {
             players[i].velocity.y = MAX(players[i].velocity.y, 0.0f);
         }
-        else if(players[i].colliding & PLAYER_DIRECTION_UP)
-        {
-            players[i].velocity.y = MIN(players[i].velocity.y, 0.0f);
-        }
         else
         {
+            if(players[i].colliding & PLAYER_DIRECTION_UP)
+            {
+                players[i].velocity.y = MIN(players[i].velocity.y, 0.0f);
+            }
             players[i].velocity.y += PLAYER_GRAVITY * deltaTime;
         }
         

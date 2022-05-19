@@ -105,3 +105,37 @@ void setVirtualDeserialize(uint32_t column, ECTColumnDeserializeFun deserialize)
 {
     getDeserializeTable()[column] = deserialize;
 }
+
+//GetIDs
+static inline ECTColumnGetIDsFun* getGetIDsTable()
+{
+    static ECTColumnGetIDsFun getIdsFuns[NUM_COMPONENT_TYPES];
+    return getIdsFuns;
+}
+
+ECTColumnGetIDsFun getVirtualGetIDs(uint32_t column)
+{
+    return getGetIDsTable()[column];
+}
+
+void setVirtualGetIDs(uint32_t column, ECTColumnGetIDsFun getIds)
+{
+    getGetIDsTable()[column] = getIds;
+}
+
+//AddAll
+static inline ECTColumnAddAllFun* getGetAddAllTable()
+{
+    static ECTColumnAddAllFun addAllFuns[NUM_COMPONENT_TYPES];
+    return addAllFuns;
+}
+
+ECTColumnAddAllFun getVirtualAddAll(uint32_t column)
+{
+    return getGetAddAllTable()[column];
+}
+
+void setVirtualAddAll(uint32_t column, ECTColumnAddAllFun addAll)
+{
+    getGetAddAllTable()[column] = addAll;
+}

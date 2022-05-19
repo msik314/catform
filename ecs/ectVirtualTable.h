@@ -29,6 +29,12 @@ void setVirtualSerialize(uint32_t column, ECTColumnSerializeFun serialize);
 ECTColumnDeserializeFun getVirtualDeserialize(uint32_t column);
 void setVirtualDeserialize(uint32_t column, ECTColumnDeserializeFun deserialize);
 
+ECTColumnGetIDsFun getVirtualGetIDs(uint32_t column);
+void setVirtualGetIDs(uint32_t column, ECTColumnGetIDsFun getIds);
+
+ECTColumnAddAllFun getVirtualAddAll(uint32_t column);
+void setVirtualAddAll(uint32_t column, ECTColumnAddAllFun addAll);
+
 #ifdef __cplusplus
 };
 #endif //__cplusplus

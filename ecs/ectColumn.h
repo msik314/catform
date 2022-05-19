@@ -26,6 +26,9 @@ typedef void (*ECTColumnAddRemoveFun)(struct _ECTColumn* self, PointerMap* point
 typedef void (*ECTColumnSerializeFun)(const struct _ECTColumn* self, JsonData* data, uint32_t column);
 typedef void (*ECTColumnDeserializeFun)(struct _ECTColumn* self, const JsonData* data, uint32_t column, const Hashmap(ObjectID, ObjectID)* refMap);
 
+typedef void (*ECTColumnGetIDsFun)(const struct _ECTColumn* self, ObjectID* outIds);
+typedef void (*ECTColumnAddAllFun)(struct _ECTColumn* dst, const struct _ECTColumn* src, const Hashmap(ObjectID, ObjectID)* refMap);
+
 typedef struct _ECTColumn
 {
     Collection components;
@@ -45,6 +48,8 @@ void ectColumnDestroyGeneric(ECTColumn* ectColumn);
 #define ectColumnRemoveAll(TYPE) ectColumn ## TYPE ## RemoveAll
 #define ectColumnParentDelete(TYPE) ectColumn ## TYPE ## ParentDelete
 #define ectColumnParentAdd(TYPE) ectColumn ## TYPE ## ParentAdd
+#define ectColumnGetIDs(TYPE) ectColumn ## TYPE ## GetIDs
+#define ectColumnAddAll(TYPE) ectColumn ## TYPE ## AddAll
 
 #define ECTCOLUMN_DECL(TYPE) \
 typedef struct\
@@ -63,6 +68,8 @@ void ectColumnAddRemove(TYPE)(ECTColumn* ectColumnGen, PointerMap* pointerMap);\
 void ectColumnRemoveAll(TYPE)(ECTColumn* ectColumnGen, PointerMap* pointerMap);\
 void ectColumnParentDelete(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, PointerMap* pointerMap);\
 void ectColumnParentAdd(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, PointerMap* pointerMap);\
+void ectColumnGetIDs(TYPE)(const ECTColumn* ectColumnGen, ObjectID* outIds);\
+void ectColumnAddAll(TYPE)(ECTColumn* dstGen, const ECTColumn* srcGen, const Hashmap(ObjectID, ObjectID)* refMap);
 
 #ifdef __cplusplus
 };

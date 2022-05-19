@@ -71,8 +71,10 @@ while(0)
 
 void ecTableSerialize(const ECTable* table, JsonData* data, uint32_t parentObject);
 void ecTableDeserialize(ECTable* table, const JsonData* data, uint32_t parentObject);
+#define ecTableAddPrefabJSON(table, data, prefab) ecTableDeserialize(table, data, prefab)
 
-#define ecTableAddPrefab(table, data, prefab) ecTableDeserialize(table, data, prefab)
+void ecTableCopy(ECTable* table, const ECTable* src);
+#define ecTableAddPrefabTable(table, prefab) ecTableCopy(table, prefab)
 
 #ifdef __cplusplus
 };

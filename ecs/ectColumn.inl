@@ -25,6 +25,8 @@ void ectColumnCreate(TYPE)(ECTColumn(TYPE)* ectColumn)\
         setVirtualParentAdd(COMPONENT(TYPE), PARENT_ADD);\
         setVirtualSerialize(COMPONENT(TYPE), SERIALIZE);\
         setVirtualDeserialize(COMPONENT(TYPE), DESERIALIZE);\
+        setVirtualGetIDs(COMPONENT(TYPE), ectColumnGetIDs(TYPE));\
+        setVirtualAddAll(COMPONENT(TYPE), ectColumnAddAll(TYPE));\
     }\
 }\
 \
@@ -154,6 +156,34 @@ void ectColumnParentAdd(TYPE)(ECTColumn* ectColumnGen, ECTColumn* entitiesGen, P
         if(obj->parent == INVALID_OBJECT) continue;\
         parent = &entities->components.data[pointerMapGet(pointerMap, obj->parent)];\
         entitySetHasComponent(parent, COMPONENT(TYPE));\
+    }\
+}\
+\
+void ectColumnGetIDs(TYPE)(const ECTColumn* ectColumnGen, ObjectID* outIds)\
+{\
+    const ECTColumn(TYPE)* ectColumn = (const ECTColumn(TYPE)*)ectColumnGen;\
+    for(uint32_t i = 0; i < ectColumn->components.size; ++i)\
+    {\
+        outIds[i] = ectColumn->components.data[i].self.id;\
+    }\
+}\
+\
+void ectColumnAddAll(TYPE)(ECTColumn* dstGen, const ECTColumn* srcGen, const Hashmap(ObjectID, ObjectID)* refMap)\
+{\
+    const ECTColumn(TYPE)* src = (const ECTColumn(TYPE)*)src;\
+    ECTColumn(TYPE)* dst = (ECTColumn(TYPE)*)dst;\
+    TYPE t;\
+    ObjectID translatedId;\
+    \
+    for(uint32_t i = 0; i < src->components.size; ++i)\
+    {\
+        t = src->components.data[i];\
+        hashmapGet(ObjectID, ObjectID)(refMap, &t.self.id, &translatedId);\
+        t.self.id = translatedId;\
+        hashmapGet(ObjectID, ObjectID)(refMap, &t.self.parent, &translatedId);\
+        t.self.parent = translatedId;\
+        \
+        ectColumnAdd(TYPE)(dst, &t);\
     }\
 }\
 

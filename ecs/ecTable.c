@@ -190,3 +190,42 @@ void ecTableDeserialize(ECTable* table, const JsonData* data, uint32_t parentObj
     
     hashmapDestroy(ObjectID, ObjectID)(&idMap);
 }
+
+static void mapColumn(Hashmap(ObjectID, ObjectID)* idMap, PointerMap* pointerMap, const ECTColumn* column, uint32_t columnIdx)
+{
+    ECTColumnGetIDsFun getIds = getVirtualGetIDs(columnIdx);
+    ObjectID newId;
+    ObjectID ids[column->components.size];
+    
+    getIds(column, ids);
+    
+    for(uint32_t i = 0; i < column->components.size; ++i)
+    {
+        newId = pointerMapAdd(pointerMap, INVALID_COLUMN_INDEX);
+        hashmapSet(ObjectID, ObjectID)(idMap, &ids[i], &newId);
+    }
+}
+
+void ecTableCopy(ECTable* table, const ECTable* src)
+{
+    Hashmap(ObjectID, ObjectID) idMap = {};
+    ECTColumnAddAllFun colFun;
+    ObjectID objId = INVALID_OBJECT;
+    ObjectID newId = INVALID_OBJECT;
+    
+    hashmapCreate(ObjectID, ObjectID)(&idMap);
+    hashmapSet(ObjectID, ObjectID)(&idMap, &objId, &newId);
+    
+    for(uint32_t i = 0; i < NUM_COMPONENT_TYPES; ++i)
+    {
+        mapColumn(&idMap, &table->pointerMap, &src->columns[i], i);
+    }
+    
+    for(uint32_t i = 0; i < NUM_COMPONENT_TYPES; ++i)
+    {
+        colFun = getVirtualAddAll(i);
+        colFun(&table->columns[i], &src->columns[i], &idMap);
+    }
+    
+    hashmapDestroy(ObjectID, ObjectID)(&idMap);
+}

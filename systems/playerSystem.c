@@ -21,6 +21,8 @@
 #include "components/aabbComponent.h"
 #include "components/bulletComponent.h"
 #include "components/spriteComponent.h"
+#include "json/jsonReader.h"
+#include "json/jsonData.h"
 
 #define PLAYER_GRAVITY -39.2f
 #define COS_45 0.7071067811f
@@ -81,23 +83,13 @@ void playerCompReady(ECSystem* self, ECTColumn* column)
 
 static inline void spawnBullet(Vec2 position, Vec2 direction, float lastDirection, uint32_t playerNum)
 {
-    Entity e = {};
-    BulletComponent bullet = 
-    {
-        {INVALID_OBJECT, 0, INVALID_OBJECT}, 
-        {},
-        BULLET_GRAVITY,
-        BULLET_FALL_DELAY,
-        BULLET_DAMAGE,
-        BULLET_KNOCKBACK,
-        BULLET_LIFETIME
-    };
-    
-    AabbComponent aabb = {{INVALID_OBJECT, 0, INVALID_OBJECT}, {}, {0.5f, 0.5f}, 16 << playerNum, ~(1 << playerNum)};
-    SpriteComponent sprite = {{INVALID_OBJECT, 0, INVALID_OBJECT}, 0xffffffff, {}, {1, 1, 1, 1}};
     ECTable* table = sceneManagerGetTable(sceneManagerGetInstance());
-    ObjectID eid;
-    ObjectID tmp;
+    ECTable prefab = {};
+    JsonData data;
+    Entity* entities;
+    BulletComponent* bullets;
+    AabbComponent* aabbs;
+    uint32_t tableIdx;
     register float dirLen;
     
     if(ABS(direction.x) < 0.5 && ABS(direction.y) < 0.5)
@@ -107,12 +99,19 @@ static inline void spawnBullet(Vec2 position, Vec2 direction, float lastDirectio
         direction.x = lastDirection;
     }
     
-    tagSet(&e.name, "bullet");
-    e.transform.rotation = (Quat){0, 0, 0, 1};
+    ecTableCreate(&prefab, NUM_COMPONENT_TYPES);
     
-    e.transform.position.x = position.x;
-    e.transform.position.y = position.y;
-    e.transform.scale = (Vec3){1, 1, 1};
+    jsonLoadf(&data, "res/bullet.cat");
+    jsonObjectGetKey(&data.root, "table", &tableIdx);
+    ecTableDeserialize(&prefab, &data, tableIdx);
+    jsonDataDestroy(&data);
+    ecTableAddRemove(&prefab);
+    
+    jsonDataDestroy(&data);
+    
+    entities = getComponents(prefab.columns, Entity);
+    entities[0].transform.position.x = position.x;
+    entities[0].transform.position.y = position.y;
     
     direction.x = (direction.x > 0.5f) - (direction.x < -0.5f);
     direction.y = (direction.y > 0.5f) - (direction.y < -0.5f);
@@ -121,18 +120,19 @@ static inline void spawnBullet(Vec2 position, Vec2 direction, float lastDirectio
     direction.x /= dirLen;
     direction.y /= dirLen;
     
-    e.transform.position.x += BULLET_SPAWN_OFFSET * direction.x;
-    e.transform.position.y += BULLET_SPAWN_OFFSET * direction.y;
-    ecTableAdd(table, Entity, &e, INVALID_OBJECT, &eid);
+    entities[0].transform.position.x += BULLET_SPAWN_OFFSET * direction.x;
+    entities[0].transform.position.y += BULLET_SPAWN_OFFSET * direction.y;
     
-    bullet.velocity.x = BULLET_SPEED * direction.x;
-    bullet.velocity.y = BULLET_SPEED * direction.y;
-    ecTableAdd(table, BulletComponent, &bullet, eid, &tmp);
+    bullets = getComponents(prefab.columns, BulletComponent);
+    bullets[0].velocity.x = BULLET_SPEED * direction.x;
+    bullets[0].velocity.y = BULLET_SPEED * direction.y;
     
-    ecTableAdd(table, AabbComponent, &aabb, eid, &tmp);
+    aabbs = getComponents(prefab.columns, AabbComponent);
+    aabbs[0].layerMask = 16 << playerNum;
+    aabbs[0].collisionMask = ~(1 << playerNum);
     
-    tagSet(&sprite.texName, "bullet");
-    ecTableAdd(table, SpriteComponent, &sprite, eid, &tmp);
+    ecTableAddPrefabTable(table, &prefab);
+    ecTableDestroy(&prefab);
 }
 
 void playerSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime)

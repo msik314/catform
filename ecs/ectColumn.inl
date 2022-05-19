@@ -11,7 +11,6 @@
 #include "ecs/ectVirtualTable.h"
 #include "util/atomics.h"
 
-
 #define ECTCOLUMN_IMPL_FUNCTIONS(TYPE, ADD_REMOVE, REMOVE_ALL, PARENT_ADD, PARENT_DELETE, SERIALIZE, DESERIALIZE) \
 void ectColumnCreate(TYPE)(ECTColumn(TYPE)* ectColumn)\
 {\
@@ -170,8 +169,8 @@ void ectColumnGetIDs(TYPE)(const ECTColumn* ectColumnGen, ObjectID* outIds)\
 \
 void ectColumnAddAll(TYPE)(ECTColumn* dstGen, const ECTColumn* srcGen, const Hashmap(ObjectID, ObjectID)* refMap)\
 {\
-    const ECTColumn(TYPE)* src = (const ECTColumn(TYPE)*)src;\
-    ECTColumn(TYPE)* dst = (ECTColumn(TYPE)*)dst;\
+    const ECTColumn(TYPE)* src = (const ECTColumn(TYPE)*)srcGen;\
+    ECTColumn(TYPE)* dst = (ECTColumn(TYPE)*)dstGen;\
     TYPE t;\
     ObjectID translatedId;\
     \

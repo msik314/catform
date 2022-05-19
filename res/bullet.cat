@@ -6,7 +6,7 @@
         [],
         [],
         [
-            {"id":1, "parent":0, "flags":0, "texName":"bullet", "tint":[1, 1, 0, 1]},
+            {"id":1, "parent":0, "flags":0, "texName":"bullet", "tint":[1, 1, 1, 1]},
         ],
         [
             {"id":2, "parent":0, "flags":0, "offset":[0, 0], "size":[0.5, 0.5], "layerMask":240, "collisionMask":15}

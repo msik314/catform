@@ -282,7 +282,7 @@ static JsonValue jsonParseToken(JsonData* data, const char* string, const jsmnto
     default:
         tokenLen = tokens[*tokenIdx].end - tokens[*tokenIdx].start;
         errorLen = strlen("unrecognized json type ");
-        errorStr = CAT_MALLOC(errorLen + tokenLen + 3);
+        errorStr = (char*)CAT_MALLOC(errorLen + tokenLen + 3);
         strcpy(errorStr, "unrecognized json type ");
         errorStr[errorLen++] = '0' + tokens[*tokenIdx].type;
         errorStr[errorLen++] = ' ';
@@ -306,7 +306,7 @@ int32_t jsonDataParse(JsonData* data, const char* str, uint32_t len)
     Tag tag;
     uint32_t tagLen;
     int32_t numTokens;
-    uint32_t tokenIdx = 0;
+    int32_t tokenIdx = 0;
     
     hashmapClear(Tag, JsonValue)(&data->root.object);
     for(int32_t i = 0; i < data->children.size; ++i)

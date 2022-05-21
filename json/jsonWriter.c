@@ -200,8 +200,13 @@ static int32_t writeObjectString(const JsonData* data, const JsonObject* object,
             break;
             
         case JSON_TYPE_NULL:
-        default:
             res = stbsp_snprintf(output, MAX(remaining, 0), "\"%s\":null", tag);
+            remaining -= res;
+            output += res;
+            break;
+        
+        default:
+            res = stbsp_snprintf(output, MAX(remaining, 0), "\"%s\":undefined", tag);
             remaining -= res;
             output += res;
         }

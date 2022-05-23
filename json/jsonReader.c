@@ -3,6 +3,7 @@
 #include "json/jsonData.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -20,6 +21,8 @@ void jsonLoadf(JsonData* data, const char* fileName)
     fseek(file, 0, SEEK_END);
     len = ftell(file);
     str = (char*)CAT_MALLOC(len * sizeof(char));
+    memset(str, 0, len * sizeof(char));
+    
     rewind(file);
     fread(str, sizeof(char), len, file);
     fclose(file);

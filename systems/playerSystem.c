@@ -107,8 +107,6 @@ static inline void spawnBullet(Vec2 position, Vec2 direction, float lastDirectio
     jsonDataDestroy(&data);
     ecTableAddRemove(&prefab);
     
-    jsonDataDestroy(&data);
-    
     entities = getComponents(prefab.columns, Entity);
     entities[0].transform.position.x = position.x;
     entities[0].transform.position.y = position.y;

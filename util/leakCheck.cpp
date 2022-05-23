@@ -48,7 +48,12 @@ void* catLCMemalign(uint32_t alignment, uint32_t size, const char* fileName, uin
 
 void catLCFree(void* ptr)
 {
-    getTrackedPointers().erase(ptr);
+    size_t res = getTrackedPointers().erase(ptr);
+    if(!res && ptr)
+    {
+        fprintf(stderr, "Pointer %x has not been allocated or has been freed twice\n", ptr);
+        ASSERT(false, "Memory error detected");
+    }
     rpfree(ptr);
 }
 

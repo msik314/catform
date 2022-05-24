@@ -15,3 +15,6 @@ HASHMAP_IMPL_EQ(Tag, ValPath, tagEq)
 
 #include "systems/aabbSystem.h"
 HASHMAP_IMPL(ObjectID, EdgePair)
+
+#include "ecs/tableCache.h"
+HASHMAP_IMPL_EQ(Tag, TableSlot, tagEq)

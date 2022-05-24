@@ -14,3 +14,6 @@ RING_IMPL(double)
 
 #include "render/texman.h"
 RING_IMPL(TextureSlot)
+
+#include "ecs/tableCache.h"
+RING_IMPL(GarbageSlot)

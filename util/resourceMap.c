@@ -28,11 +28,8 @@ ResourceMap* resourceMapGetInstance()
 int32_t resourceMapFromJson(ResourceMap* resourceMap, const JsonData* data, const JsonObject* resources)
 {
     HashmapIterator(Tag, ValPath) mapItr;
-    HashmapIterator(Tag, JsonValue) jsonItr;
     TexMan* texMan = texManGetInstance();
     Tag key;
-    JsonValue jsonVal;
-    ValPath valPath;
     
     mapItr = hashmapBegin(Tag, ValPath)(resourceMap);
     while(!hashmapIteratorEnd(Tag, ValPath)(&mapItr))
@@ -43,6 +40,17 @@ int32_t resourceMapFromJson(ResourceMap* resourceMap, const JsonData* data, cons
     }
     
     hashmapClear(Tag, ValPath)(resourceMap);
+    
+    resourceMapAddFromJson(resourceMap, data, resources);
+}
+
+int32_t resourceMapAddFromJson(ResourceMap* resourceMap, const JsonData* data, const JsonObject* resources)
+{
+    HashmapIterator(Tag, JsonValue) jsonItr;
+    TexMan* texMan = texManGetInstance();
+    Tag key;
+    JsonValue jsonVal;
+    ValPath valPath;
     
     jsonItr = hashmapBegin(Tag, JsonValue)(&resources->object);
     while(!hashmapIteratorEnd(Tag, JsonValue)(&jsonItr))

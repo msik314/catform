@@ -35,6 +35,7 @@ ResourceMap* resourceMapGetInstance();
 #define resourceMapClear(map) hashmapClear(Tag, ValPath)(map)
 
 int32_t resourceMapFromJson(ResourceMap* resourceMap, const JsonData* data, const JsonObject* resources);
+int32_t resourceMapAddFromJson(ResourceMap* resourceMap, const JsonData* data, const JsonObject* resources);
 
 Texture resourceMapLoadTexture(const ResourceMap* resourceMap, Tag texName);
 

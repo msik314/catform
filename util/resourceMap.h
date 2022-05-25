@@ -6,6 +6,7 @@
 #include "core/tag.h"
 #include "containers/hashmap.h"
 #include "render/texture.h"
+#include "ecs/ecTable.h"
 #include "json/jsonData.h"
 
 #ifdef __cplusplus
@@ -38,6 +39,8 @@ int32_t resourceMapFromJson(ResourceMap* resourceMap, const JsonData* data, cons
 int32_t resourceMapAddFromJson(ResourceMap* resourceMap, const JsonData* data, const JsonObject* resources);
 
 Texture resourceMapLoadTexture(const ResourceMap* resourceMap, Tag texName);
+
+ECTable* resourceMapLoadTable(ResourceMap* resourceMap, Tag tableName);
 
 #ifdef __cplusplus
 };

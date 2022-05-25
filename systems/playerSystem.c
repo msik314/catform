@@ -12,11 +12,13 @@
 #include "ecs/pointerMap.h"
 #include "ecs/object.h"
 #include "ecs/phase.h"
+#include "ecs/tableCache.h"
 #include "systems/systems.h"
 #include "systems/aabbSystem.h"
 #include "util/atomics.h"
 #include "util/linalloc.h"
 #include "util/utilMacros.h"
+#include "util/resourceMap.h"
 #include "components/entity.h"
 #include "components/aabbComponent.h"
 #include "components/bulletComponent.h"
@@ -84,11 +86,12 @@ void playerCompReady(ECSystem* self, ECTColumn* column)
 static inline void spawnBullet(Vec2 position, Vec2 direction, float lastDirection, uint32_t playerNum)
 {
     ECTable* table = sceneManagerGetTable(sceneManagerGetInstance());
-    ECTable prefab = {};
+    ECTable* prefab;
     JsonData data;
     Entity* entities;
     BulletComponent* bullets;
     AabbComponent* aabbs;
+    Tag pfbName;
     uint32_t tableIdx;
     register float dirLen;
     
@@ -99,15 +102,10 @@ static inline void spawnBullet(Vec2 position, Vec2 direction, float lastDirectio
         direction.x = lastDirection;
     }
     
-    ecTableCreate(&prefab, NUM_COMPONENT_TYPES);
+    tagSet(&pfbName, "bulletPfb");
+    prefab = tableCacheGet(tableCacheGetInstance(), pfbName);
     
-    jsonLoadf(&data, "res/bullet.cat");
-    jsonObjectGetKey(&data.root, "table", &tableIdx);
-    ecTableDeserialize(&prefab, &data, tableIdx);
-    jsonDataDestroy(&data);
-    ecTableAddRemove(&prefab);
-    
-    entities = getComponents(prefab.columns, Entity);
+    entities = getComponents(prefab->columns, Entity);
     entities[0].transform.position.x = position.x;
     entities[0].transform.position.y = position.y;
     
@@ -121,16 +119,15 @@ static inline void spawnBullet(Vec2 position, Vec2 direction, float lastDirectio
     entities[0].transform.position.x += BULLET_SPAWN_OFFSET * direction.x;
     entities[0].transform.position.y += BULLET_SPAWN_OFFSET * direction.y;
     
-    bullets = getComponents(prefab.columns, BulletComponent);
+    bullets = getComponents(prefab->columns, BulletComponent);
     bullets[0].velocity.x = BULLET_SPEED * direction.x;
     bullets[0].velocity.y = BULLET_SPEED * direction.y;
     
-    aabbs = getComponents(prefab.columns, AabbComponent);
+    aabbs = getComponents(prefab->columns, AabbComponent);
     aabbs[0].layerMask = 16 << playerNum;
     aabbs[0].collisionMask = ~(1 << playerNum);
     
-    ecTableAddPrefabTable(table, &prefab);
-    ecTableDestroy(&prefab);
+    ecTableAddPrefabTable(table, prefab);
 }
 
 void playerSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, uint32_t numColumns, float deltaTime)
@@ -355,6 +352,11 @@ void playerCompDestroyAll(ECSystem* self, ECTColumn* column)
     }
 }
 
-void playerReady(PlayerComponent* player){}
+void playerReady(PlayerComponent* player)
+{
+    Tag t;
+    tagSet(&t, "bulletPfb");
+    resourceMapLoadTable(resourceMapGetInstance(), t); //This has to be done during ready phase
+}
 
-void playerOnDestroy(PlayerComponent* player){} 
+void playerOnDestroy(PlayerComponent* player){}

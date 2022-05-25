@@ -34,6 +34,19 @@ void tableCacheDestroy(TableCache* tableCache)
     ringDestroy(GarbageSlot)(&tableCache->garbage);
 }
 
+ECTable* tableCacheGet(TableCache* tableCache, Tag name)
+{
+    TableSlot slot = {};
+    
+    if(hashmapGet(Tag, TableSlot)(&tableCache->tableMap, &name, &slot))
+    {
+        tableCacheRealloc(tableCache, name);
+        return &tableCache->loadedTables[slot.index];
+    }
+    
+    return NULL;
+}
+
 ECTable* tableCacheLoad(TableCache* tableCache, Tag name, const JsonData* data, uint32_t parentObject)
 {
     TableSlot slot = {};

@@ -10,7 +10,10 @@
 #include "containers/string.h"
 #include "render/texture.h"
 #include "render/texman.h"
+#include "ecs/tableCache.h"
+#include "ecs/ecTable.h"
 #include "json/jsonData.h"
+#include "json/jsonReader.h"
 
 #ifndef CAT_MALLOC
 #include <stdlib.h>
@@ -29,6 +32,7 @@ int32_t resourceMapFromJson(ResourceMap* resourceMap, const JsonData* data, cons
 {
     HashmapIterator(Tag, ValPath) mapItr;
     TexMan* texMan = texManGetInstance();
+    TableCache* tableCache = tableCacheGetInstance();
     Tag key;
     
     mapItr = hashmapBegin(Tag, ValPath)(resourceMap);
@@ -36,6 +40,7 @@ int32_t resourceMapFromJson(ResourceMap* resourceMap, const JsonData* data, cons
     {
         hashmapIteratorKey(Tag, ValPath)(&mapItr, &key);
         texManFreeTag(texMan, key);
+        tableCacheFree(tableCache, key);
         hashmapIteratorNext(Tag, ValPath)(&mapItr);
     }
     
@@ -86,5 +91,32 @@ Texture resourceMapLoadTexture(const ResourceMap* resourceMap, Tag texName)
     
     res = texManLoad(texMan, texName, data, width, height);
     stbi_image_free(data);
+    return res;
+}
+
+ECTable* resourceMapLoadTable(ResourceMap* resourceMap, Tag tableName)
+{
+    ECTable* res;
+    TableCache* tableCache = tableCacheGetInstance();
+    JsonData data = {};
+    ValPath path;
+    uint32_t idx;
+    const JsonObject* resources;
+    
+    res = tableCacheGet(tableCache, tableName);
+    
+    if(res) return res;
+    
+    if(!hashmapGet(Tag, ValPath)(resourceMap, &tableName, &path)) return NULL;
+    
+    jsonLoadf(&data, path.path);
+    
+    jsonObjectGetKey(&data.root, "resources", &idx);
+    resources = jsonDataGetChildConst(&data, idx);
+    resourceMapAddFromJson(resourceMap, &data, resources);
+    jsonObjectGetKey(&data.root, "table", &idx);
+    res = tableCacheLoad(tableCache, tableName, &data, idx);
+    
+    jsonDataDestroy(&data);
     return res;
 }

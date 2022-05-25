@@ -18,6 +18,7 @@
 #include "core/input.h"
 #include "core/config.h"
 #include "ecs/sceneManager.h"
+#include "ecs/tableCache.h"
 #include "json/jsonData.h"
 #include "json/jsonReader.h"
 #include "json/jsonWriter.h"
@@ -52,6 +53,7 @@ int32_t main(int argc, char** argv)
     Window window;
     Input* input = inputGetInstance();
     ResourceMap* resourceMap = resourceMapGetInstance();
+    TableCache* tableCache = tableCacheGetInstance();
     JsonData data;
     
     double currentTime;
@@ -102,7 +104,7 @@ int32_t main(int argc, char** argv)
     
     sceneManagerInit(sceneMan);
     resourceMapCreate(resourceMap);
-    
+    tableCacheCreate(tableCache);
     jsonLoadf(&data, "res/test.cat");
     sceneManagerLoadScene(sceneMan, &data);
     jsonDataDestroy(&data);
@@ -125,6 +127,7 @@ int32_t main(int argc, char** argv)
         lastTime = currentTime;
     }
     
+    tableCacheDestroy(tableCache);
     resourceMapDestroy(resourceMap);
     sceneManagerDestroy(sceneMan);
     windowDestroy(&window);

@@ -45,5 +45,5 @@
         ],
         []
     ],
-    "resources":{"upArrow":"res/test.png", "bullet":"res/bullet.png"}
+    "resources":{"upArrow":"res/test.png", "bullet":"res/bullet.png", "bulletPfb":"res/bullet.cat"}
 }

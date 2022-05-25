@@ -53,6 +53,7 @@ TableCache* tableCacheGetInstance();
 void tableCacheCreate(TableCache* tableCache);
 void tableCacheDestroy(TableCache* tableCache);
 
+ECTable* tableCacheGet(TableCache* tableCache, Tag name);
 ECTable* tableCacheLoad(TableCache* tableCache, Tag name, const JsonData* data, uint32_t parentObject);
 
 void tableCacheFree(TableCache* tableCache, Tag name);

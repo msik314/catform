@@ -334,6 +334,14 @@ void playerCompReadyAll(ECSystem* self, ECTColumn* column)
         fetchAnd32(&players->components.data[i].self.flags, ~OBJECT_FLAG_UNREADY);
         playerReady(&players->components.data[i]);
     }
+    
+    if(players->components.size)
+    {
+        //This has to be done on the main thread
+        Tag t;
+        tagSet(&t, "bulletPfb");
+        resourceMapLoadTable(resourceMapGetInstance(), t);
+    }
 }
 
 void playerCompDestroyAll(ECSystem* self, ECTColumn* column)
@@ -352,11 +360,6 @@ void playerCompDestroyAll(ECSystem* self, ECTColumn* column)
     }
 }
 
-void playerReady(PlayerComponent* player)
-{
-    Tag t;
-    tagSet(&t, "bulletPfb");
-    resourceMapLoadTable(resourceMapGetInstance(), t); //This has to be done during ready phase
-}
+void playerReady(PlayerComponent* player){}
 
 void playerOnDestroy(PlayerComponent* player){}

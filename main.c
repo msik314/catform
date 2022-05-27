@@ -44,6 +44,32 @@
 #define BLUE 0x00, 0x00, 0xff, 0xff
 #define GREEN 0x00, 0xff, 0x00, 0xff
 
+#define NUM_WORKER_THREADS 2
+
+typedef struct
+{
+    volatile float dt;
+    volatile uint32_t running;
+}
+WorkerArgs;
+
+static void* workerThread(void* argsGen)
+{
+    WorkerArgs* args = (WorkerArgs*)argsGen;
+    SceneManager* sceneMan = sceneManagerGetInstance();
+    register float dt;
+    rpmalloc_thread_initialize();
+    
+    while(atomicLoad32(&args->running))
+    {
+        sceneManagerFollowFrame(sceneMan, dt);
+        dt = atomicLoad32(&args->dt);
+    }
+    
+    rpmalloc_thread_finalize();
+    return NULL;
+}
+
 int32_t main(int argc, char** argv)
 {
     ptrdiff_t pathLen;
@@ -58,6 +84,9 @@ int32_t main(int argc, char** argv)
     
     double currentTime;
     double lastTime;
+    WorkerArgs args = {-1.0f/60, 1};
+    register float dt;
+    pthread_t threads[NUM_WORKER_THREADS] = {};
     
     pathLen = strrchr(argv[0], '/') - argv[0];
     if(pathLen < 0) pathLen = strrchr(argv[0], '\\') - argv[0];
@@ -78,7 +107,7 @@ int32_t main(int argc, char** argv)
     linBuffer = CAT_MALLOC(LINALLOC_SIZE);
     linInit(linBuffer, LINALLOC_SIZE);
     
-    sceneManagerCreate(sceneMan, 1);
+    sceneManagerCreate(sceneMan, 1 + NUM_WORKER_THREADS);
     sceneManagerRegisterColumnSys(sceneMan, &ENTITY_SYSTEM, COMPONENT(Entity), true);
     sceneManagerRegisterSystem(sceneMan, &RENDER_SYSTEM);
     sceneManagerRegisterColumnSys(sceneMan, &PLAYER_SYSTEM, COMPONENT(PlayerComponent), false);
@@ -109,6 +138,11 @@ int32_t main(int argc, char** argv)
     sceneManagerLoadScene(sceneMan, &data);
     jsonDataDestroy(&data);
     
+    for(uint32_t i = 0; i < NUM_WORKER_THREADS; ++i)
+    {
+        pthread_create(&threads[i], NULL, workerThread, &args);
+    }
+    
     currentTime = 0;
     lastTime = -1.0/60;
     glfwSetTime(0);
@@ -117,14 +151,21 @@ int32_t main(int argc, char** argv)
     {
         currentTime = glfwGetTime();
         inputPoll(input, window.window);
-        sceneManagerFrame(sceneMan, (float)(currentTime - lastTime));
-        
+        dt = (float)(currentTime - lastTime);
+        sceneManagerFrame(sceneMan, dt);
+        atomicStore32(&args.dt, dt);
 #ifndef NDEBUG
-        printf("%f\n", currentTime - lastTime);
+        printf("%f\n", dt);
 #endif //NDEBUG
         
         windowSwapBuffers(&window);
         lastTime = currentTime;
+    }
+    atomicStore32(&args.running, 0);
+    
+    for(uint32_t i = 0; i < NUM_WORKER_THREADS; ++i)
+    {
+        pthread_join(threads[i], NULL);
     }
     
     tableCacheDestroy(tableCache);

@@ -115,7 +115,10 @@ void renderSysUpdate(ECSystem* self, SysFlags* flags, const ECTColumn* columns, 
     
     for(uint32_t i = 0; i < numSprites; ++i)
     {
+        
         parent = pointerMapGet(map, spriteComponents[i].self.parent);
+        if(parent == INVALID_OBJECT) continue;
+        
         transformCompose(&entities[parent].transform, &transform);
         transform = vp * transform;
         shaderUniformMat4(0, (Mat4*)&transform);

@@ -235,7 +235,7 @@ bool sceneManagerLoadScene(SceneManager* sceneManager, const JsonData* scene)
     return true;
 }
 
-static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* systems, SysFlags* sysFlags, uint32_t numSystems, uint32_t* entityDeps, uint32_t numEntityDeps, float deltaTime)
+static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* systems, SysFlags* sysFlags, uint32_t numSystems, uint32_t* entityDeps, uint32_t numEntityDeps, volatile float* dt)
 {
     Job job;
     uint32_t sysIdx;
@@ -243,8 +243,16 @@ static inline void runSchedule(Scheduler* scheduler, ECTable* table, ECSystem* s
     
     uint32_t colDeps[2];
     
+    register float deltaTime = -1.0f;
+    
     while(schedulerGetNext(scheduler, &job))
     {
+        if(deltaTime < 0.0f)
+        {
+            sysIdx = atomicLoad32(dt);
+            deltaTime = *(float*)(&sysIdx);
+        }
+        
         switch(job.jobType)
         {
         case JOB_TYPE(compReady):
@@ -321,6 +329,9 @@ void sceneManagerFrame(SceneManager* sceneManager, float deltaTime)
     ECTable* newTable;
     register uint32_t colSys;
     
+    colSys = *(uint32_t*)(&deltaTime);
+    atomicStore32(&sceneManager->deltaTime, colSys);
+    
     schedulerReset(&sceneManager->scheduler);
     runSchedule
     (
@@ -331,7 +342,7 @@ void sceneManagerFrame(SceneManager* sceneManager, float deltaTime)
         sceneManager->systems.size,
         sceneManager->entityMarkDeps.data,
         sceneManager->entityMarkDeps.size,
-        deltaTime
+        &sceneManager->deltaTime
     );
     
     linReset();
@@ -363,7 +374,7 @@ void sceneManagerFrame(SceneManager* sceneManager, float deltaTime)
     }
 }
 
-void sceneManagerFollowFrame(SceneManager* sceneManager, float deltaTime)
+void sceneManagerFollowFrame(SceneManager* sceneManager)
 {
     runSchedule
     (
@@ -374,6 +385,6 @@ void sceneManagerFollowFrame(SceneManager* sceneManager, float deltaTime)
         sceneManager->systems.size,
         sceneManager->entityMarkDeps.data,
         sceneManager->entityMarkDeps.size,
-        deltaTime
+        &sceneManager->deltaTime
     );
 }

@@ -46,24 +46,14 @@
 
 #define NUM_WORKER_THREADS 2
 
-typedef struct
+static void* workerThread(volatile void* args)
 {
-    volatile float dt;
-    volatile uint32_t running;
-}
-WorkerArgs;
-
-static void* workerThread(void* argsGen)
-{
-    WorkerArgs* args = (WorkerArgs*)argsGen;
     SceneManager* sceneMan = sceneManagerGetInstance();
-    register float dt;
     rpmalloc_thread_initialize();
     
-    while(atomicLoad32(&args->running))
+    while(atomicLoad32(args))
     {
-        sceneManagerFollowFrame(sceneMan, dt);
-        dt = atomicLoad32(&args->dt);
+        sceneManagerFollowFrame(sceneMan);
     }
     
     rpmalloc_thread_finalize();
@@ -84,8 +74,7 @@ int32_t main(int argc, char** argv)
     
     double currentTime;
     double lastTime;
-    WorkerArgs args = {-1.0f/60, 1};
-    register float dt;
+    volatile uint32_t running = 1;
     pthread_t threads[NUM_WORKER_THREADS] = {};
     
     pathLen = strrchr(argv[0], '/') - argv[0];
@@ -140,7 +129,7 @@ int32_t main(int argc, char** argv)
     
     for(uint32_t i = 0; i < NUM_WORKER_THREADS; ++i)
     {
-        pthread_create(&threads[i], NULL, workerThread, &args);
+        pthread_create(&threads[i], NULL, workerThread, &running);
     }
     
     currentTime = 0;
@@ -151,17 +140,16 @@ int32_t main(int argc, char** argv)
     {
         currentTime = glfwGetTime();
         inputPoll(input, window.window);
-        dt = (float)(currentTime - lastTime);
-        sceneManagerFrame(sceneMan, dt);
-        atomicStore32(&args.dt, dt);
+        sceneManagerFrame(sceneMan, (float)(currentTime - lastTime));
+
 #ifndef NDEBUG
-        printf("%f\n", dt);
+        printf("%f\n", currentTime - lastTime);
 #endif //NDEBUG
         
         windowSwapBuffers(&window);
         lastTime = currentTime;
     }
-    atomicStore32(&args.running, 0);
+    atomicStore32(&running, 0);
     
     for(uint32_t i = 0; i < NUM_WORKER_THREADS; ++i)
     {

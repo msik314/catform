@@ -24,6 +24,8 @@ typedef struct
     Vector(ECSystem) systems;
     uint32_t* columnSystems;
     
+    volatile float deltaTime;
+    
     Vector(uint32_t) entityMarkDeps;
     
     Scheduler scheduler;
@@ -50,7 +52,7 @@ bool sceneManagerSwitchScene(SceneManager* sceneManager, ECTable* table);
 bool sceneManagerLoadScene(SceneManager* sceneManager, const JsonData* scene);
 void sceneManagerFrame(SceneManager* sceneManager, float deltaTime);
 
-void sceneManagerFollowFrame(SceneManager* sceneManager, float deltaTime);
+void sceneManagerFollowFrame(SceneManager* sceneManager);
 
 static inline void sceneManagerWaitFrame(SceneManager* sceneManager) {barrierWait(&sceneManager->frameBarrier);}
 

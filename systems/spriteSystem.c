@@ -14,7 +14,11 @@
 #include "util/resourceMap.h"
 
 const JobDependency SPRITE_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(SpriteComponent), PHASE_PARENT)}};
-const JobDependency SPRITE_COPY_DEPS = {1, {MAKE_JOB_ID(SYSTEM(SpriteComponent), PHASE_UPDATE)}};
+const JobDependency SPRITE_COPY_DEPS = 
+{
+    2, 
+    {MAKE_JOB_ID(SYSTEM(SpriteComponent), PHASE_UPDATE), MAKE_JOB_ID(SYSTEM(Render), PHASE_UPDATE)}
+};
 
 const JobDependency SPRITE_DESTROY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(SpriteComponent), PHASE_MARK)}};
 

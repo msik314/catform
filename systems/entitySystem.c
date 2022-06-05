@@ -17,11 +17,12 @@
 const JobDependency ENTITY_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(Entity), PHASE_PARENT)}};
 const JobDependency ENTITY_COPY_DEPS = 
 {
-    3,
+    4,
     {
         MAKE_JOB_ID(SYSTEM(Entity), PHASE_UPDATE),
         MAKE_JOB_ID(SYSTEM(PlayerComponent), PHASE_UPDATE),
         MAKE_JOB_ID(SYSTEM(AabbComponent), PHASE_UPDATE),
+        MAKE_JOB_ID(SYSTEM(Render), PHASE_UPDATE)
     }
 };
 

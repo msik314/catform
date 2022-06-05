@@ -15,7 +15,11 @@
 const JobDependency CAMERA_READY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(CameraComponent), PHASE_PARENT)}};
 const JobDependency CAMERA_COPY_DEPS = {1, {MAKE_JOB_ID(SYSTEM(CameraComponent), PHASE_UPDATE)}};
 
-const JobDependency CAMERA_DESTROY_DEPS = {1, {MAKE_JOB_ID(COMPONENT(CameraComponent), PHASE_MARK)}};
+const JobDependency CAMERA_DESTROY_DEPS = 
+{
+    2, 
+    {MAKE_JOB_ID(COMPONENT(CameraComponent), PHASE_MARK), MAKE_JOB_ID(SYSTEM(Render), PHASE_UPDATE)}
+};
 
 static void cameraColCreate(ECTColumn* column){ectColumnCreate(CameraComponent)((ECTColumn(CameraComponent)*)column);}
 

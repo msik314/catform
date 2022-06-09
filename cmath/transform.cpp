@@ -1,10 +1,12 @@
 #include "util/globalDefs.h"
 #include "cmath/transform.h"
 
+#include <math.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include "cmath/cVec.h"
+#include "util/utilMacros.h"
 
 #ifdef __restrict__
 #define RESTRICT __restrict__
@@ -74,14 +76,49 @@ void transformCompose(const Transform* transform, glm::mat4* RESTRICT outMatrix)
 
 bool transformDecompose(const Mat4* matrix, Transform* RESTRICT outTransform)
 {
-    glm::vec3 skew;
-    glm::vec4 perspective;
-    return glm::decompose(*(glm::mat4*)matrix, *((glm::vec3*)&outTransform->scale), *(glm::quat*)&outTransform->rotation, *(glm::vec3*)&outTransform->position, skew, perspective);
+    glm::vec3 col1 = glm::vec3(matrix->data[0], matrix->data[1], matrix->data[2]);
+    glm::vec3 col2 = glm::vec3(matrix->data[4], matrix->data[5], matrix->data[6]);
+    glm::vec3 col3 = glm::vec3(matrix->data[8], matrix->data[9], matrix->data[10]);
+    glm::vec3 scale = {glm::length(col1), glm::length(col2), glm::length(col3)};
+    
+    register float prd;
+    register float trace;
+    register float r;
+    register float s;
+    
+    col1 /= scale.x;
+    col2 /= scale.y;
+    col3 /= scale.z;
+    
+    //Test for pure rotation
+    prd = glm::dot(col1, col2);
+    if(ABS(prd) > 0.01) return false;
+    
+    prd = glm::dot(col2, col3);
+    if(ABS(prd) > 0.01) return false;
+    
+    prd = glm::dot(col1, col3);
+    if(ABS(prd) > 0.01) return false;
+    
+    trace = col1.x + col2.y + col3.z;
+    r = sqrtf(1 + trace);
+    s = 1/(2 * r);
+    
+    outTransform->rotation.x = (col2.z - col3.y) * s;
+    outTransform->rotation.y = (col3.x - col1.z) * s;
+    outTransform->rotation.z = (col1.y - col2.x) * s;
+    outTransform->rotation.w = 0.5f * r;
+    
+    outTransform->position.x = matrix->data[12];
+    outTransform->position.y = matrix->data[13];
+    outTransform->position.z = matrix->data[14];
+    
+    outTransform->scale = (Vec3){scale.x, scale.y, scale.z};
+    
+    return true;
 }
 
 bool transformDecompose(const glm::mat4* matrix, Transform* RESTRICT outTransform)
 {
-    glm::vec3 skew;
-    glm::vec4 perspective;
-    return glm::decompose(*matrix, *((glm::vec3*)&outTransform->scale), *(glm::quat*)&outTransform->rotation, *(glm::vec3*)&outTransform->position, skew, perspective);
+    return transformDecompose((Mat4*)matrix, outTransform);
 }
